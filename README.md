@@ -4,7 +4,7 @@
 
 Но! Его можно скомпилировать под WASM и запускать в бразуезере.
 
-См. [examples/canvas](./examples/canvas/) и пример на [GitHub Pages]()
+См. [examples/canvas](./examples/canvas/) и пример на [GitHub Pages](https://butvinm.github.io/lame-refal/)
 
 # Сборка и запуск
 

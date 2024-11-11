@@ -1,0 +1,66 @@
+*FROM Canvas
+$EXTERN FillRect, SetFillStyle;
+
+/* args: <ts> */
+$ENTRY Go {
+  = <Draw <Numb <Arg 0>>>;
+}
+
+CanvasWidth { = 1000 }
+CanvasHeight { = 1000 }
+StripWidth { = 100 }
+StripHeight { = 10 }
+SpeedFactor { = 10 }
+
+Draw {
+  e.Ts =
+    <SetFillStyle 'rgb(255 255 255)'> <FillRect 0 0 <CanvasWidth> <CanvasHeight>>
+
+    <SetFillStyle 'rgb(228 3 3)'  >
+    <FillRect
+      <Div (e.Ts) <SpeedFactor>>
+      <Add <Div (e.Ts) <SpeedFactor>> <Mul (0) <StripHeight>>>
+      <StripWidth>
+      <StripHeight>
+    >
+
+    <SetFillStyle 'rgb(255 140 0)'>
+    <FillRect
+      <Div (e.Ts) <SpeedFactor>>
+      <Add <Div (e.Ts) <SpeedFactor>> <Mul (1) <StripHeight>>>
+      <StripWidth>
+      <StripHeight>
+    >
+
+    <SetFillStyle 'rgb(255 237 0)'>
+    <FillRect
+      <Div (e.Ts) <SpeedFactor>>
+      <Add <Div (e.Ts) <SpeedFactor>> <Mul (2) <StripHeight>>>
+      <StripWidth>
+      <StripHeight>
+    >
+
+    <SetFillStyle 'rgb(0 128 38)' >
+    <FillRect
+      <Div (e.Ts) <SpeedFactor>>
+      <Add <Div (e.Ts) <SpeedFactor>> <Mul (3) <StripHeight>>>
+      <StripWidth>
+      <StripHeight>
+    >
+
+    <SetFillStyle 'rgb(0 77 255)' >
+    <FillRect
+      <Div (e.Ts) <SpeedFactor>>
+      <Add <Div (e.Ts) <SpeedFactor>> <Mul (4) <StripHeight>>>
+      <StripWidth>
+      <StripHeight>
+    >
+
+    <SetFillStyle 'rgb(117 7 135)'>
+    <FillRect
+      <Div (e.Ts) <SpeedFactor>>
+      <Add <Div (e.Ts) <SpeedFactor>> <Mul (5) <StripHeight>>>
+      <StripWidth>
+      <StripHeight>
+    >
+}

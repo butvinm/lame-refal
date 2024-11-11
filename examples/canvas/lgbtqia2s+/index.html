@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>WASM Test</title>
+    </head>
+    <body>
+        <h3>WARNING: It will overflow the memory as soon as it reached 1000px</h3>
+        <button onclick="history.back()">Home</h>
+
+        <button id="stopButton">Stoooooop!</button>
+
+        <canvas id="wasmCanvas" width="1000px" height="1000px"></canvas>
+
+        <script type="module">
+            import { getLameWasmEnv, lamePostInit } from "../../../lib/lamelib.js";
+            import { canvasPostInit, getCanvasWasmEnv } from "../canvas.js";
+
+            const canvas = document.getElementById("wasmCanvas");
+            const ctx = canvas.getContext("2d");
+
+            const { instance } = await WebAssembly.instantiateStreaming(fetch("./main.wasm"), {
+                env: {
+                    ...getCanvasWasmEnv(ctx),
+                    ...getLameWasmEnv(),
+                },
+            });
+
+            lamePostInit(instance);
+            canvasPostInit(instance);
+
+            const data = new DataView(instance.exports.memory.buffer);
+            const encoder = new TextEncoder();
+
+            let stop = false;
+            let dt;
+            let previous;
+
+            function next(timestamp) {
+                if (stop) {
+                    console.log("Stopped");
+                    return;
+                }
+
+                timestamp = timestamp
+                dt = (timestamp - previous);
+                previous = timestamp;
+
+                const argv_ptr = instance.exports.malloc(1024);
+                const strings_ptr = instance.exports.malloc(1024);
+                data.setUint32(argv_ptr, strings_ptr, true);
+
+                const str = encoder.encode(Math.ceil(timestamp));
+                let i = 0;
+                while (i < str.length) {
+                    data.setUint8(strings_ptr + i, str[i]);
+                    i++;
+                }
+                data.setUint8(i, 0);
+
+
+                try {
+                    instance.exports.main(1, argv_ptr);
+                } catch (e) {
+                    if (e.message !== "Refal machine exited: 0") {
+                        console.error(e);
+                    }
+                }
+
+                window.requestAnimationFrame(next);
+            }
+
+            window.requestAnimationFrame((timestamp) => {
+                previous = timestamp;
+                window.requestAnimationFrame(next);
+            });
+
+            document.getElementById("stopButton").addEventListener("click", () => {
+                stop = true;
+            });
+        </script>
+    </body>
+</html>

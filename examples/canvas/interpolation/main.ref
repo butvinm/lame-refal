@@ -1,0 +1,120 @@
+*FROM Canvas
+$EXTERN FillRect, SetFillStyle;
+
+
+$ENTRY Go {
+  =
+    <Prout
+      'e.x:  ' <Arg 0> ' '
+      'e.x0: ' <Arg 1> ' '
+      'e.y0: ' <Arg 2> ' '
+      'e.x1: ' <Arg 3> ' '
+      'e.y1: ' <Arg 4> ' '
+      'e.x2: ' <Arg 5> ' '
+      'e.y2: ' <Arg 6> ' '
+    >
+    <Next
+      (<Numb <Arg 0>>)
+      (<Numb <Arg 1>>)
+      (<Numb <Arg 2>>)
+      (<Numb <Arg 3>>)
+      (<Numb <Arg 4>>)
+      (<Numb <Arg 5>>)
+      (<Numb <Arg 6>>)
+    >
+}
+
+
+CanvasCenterX { = 500 }
+CanvasCenterY { = 500 }
+CanvasScale { e.A = <Mul (e.A) 10> }
+
+FFScale { e.A = <Div (e.A) 10000> };
+FFScaleH { e.A = <Div (e.A) 100> };
+
+FFWrap {
+  s.A = s.A;
+  '-' s.A = '-' s.A;
+  '-' s.A e.B = '-' <FFWrap e.B>;
+  s.A e.B = <FFWrap e.B>;
+}
+
+FFMul {
+  (e.A) e.B = <FFWrap <Mul (<FFScaleH e.A>) <FFScaleH e.B>>>;
+}
+
+FFDiv {
+  (e.A) e.B = <FFWrap <Div (e.A) <FFScale e.B>>>;
+}
+
+FFAdd {
+  (e.A) e.B = <FFWrap <Add (e.A) e.B>>;
+}
+
+FFSub {
+  (e.A) e.B = <FFWrap <Sub (e.A) e.B>>;
+}
+
+Next {
+  (e.x)
+  (e.x0) (e.y0)
+  (e.x1) (e.y1)
+  (e.x2) (e.y2) =
+    <Draw
+      (e.x)
+      (<P3
+        (e.x)
+        (e.x0) (e.y0)
+        (e.x1) (e.y1)
+        (e.x2) (e.y2)
+      >)
+    >
+}
+
+
+Draw {
+  (e.x) (e.y) =
+    <SetFillStyle 'rgb(0 0 0)'>
+    <FillRect
+      (<Add
+        (<FFScale <CanvasScale e.x>>)
+        <CanvasCenterX>
+      >)
+      (<Sub
+        (<CanvasCenterY>)
+        <FFScale <CanvasScale e.y>>
+      >)
+      2
+      2
+    >
+}
+
+P3 {
+  (e.x)
+  (e.x0) (e.y0)
+  (e.x1) (e.y1)
+  (e.x2) (e.y2)
+  =
+    <FFAdd
+      (<FFMul (<L0 (e.x) (e.x0) (e.x1) (e.x2)>) e.y0>)
+      <FFAdd
+        (<FFMul (<L1 (e.x) (e.x0) (e.x1) (e.x2)>) e.y1>)
+        <FFMul (<L2 (e.x) (e.x0) (e.x1) (e.x2)>) e.y2>
+      >
+    >
+}
+
+L0 {
+  (e.x) (e.x0) (e.x1) (e.x2) =
+    <FFDiv (<FFMul (<FFSub (e.x) e.x1>) <FFSub (e.x) e.x2>>) <FFMul (<FFSub (e.x0) e.x1>) <FFSub (e.x0) e.x2>>>
+}
+
+L1 {
+  (e.x) (e.x0) (e.x1) (e.x2) =
+    <FFDiv (<FFMul (<FFSub (e.x) e.x0>) <FFSub (e.x) e.x2>>) <FFMul (<FFSub (e.x1) e.x0>) <FFSub (e.x1) e.x2>>>
+}
+
+L2 {
+  (e.x) (e.x0) (e.x1) (e.x2) =
+    <FFDiv (<FFMul (<FFSub (e.x) e.x0>) <FFSub (e.x) e.x1>>) <FFMul (<FFSub (e.x2) e.x0>) <FFSub (e.x2) e.x1>>>
+}

@@ -87,9 +87,31 @@ R05_DEFINE_ENTRY_FUNCTION(FillRect, "FillRect") {
     p = parse_signed_number(&x, p);
   }
 
-  p = parse_signed_number(&y, p);
+  if (R05_DATATAG_OPEN_BRACKET == p->tag) {
+    p = p->next;
+    p = parse_signed_number(&y, p);
 
-  p = parse_signed_number(&w, p);
+    if (R05_DATATAG_CLOSE_BRACKET != p->tag) {
+      r05_recognition_impossible();
+    }
+
+    p = p->next;
+  } else {
+    p = parse_signed_number(&y, p);
+  }
+
+  if (R05_DATATAG_OPEN_BRACKET == p->tag) {
+    p = p->next;
+    p = parse_signed_number(&w, p);
+
+    if (R05_DATATAG_CLOSE_BRACKET != p->tag) {
+      r05_recognition_impossible();
+    }
+
+    p = p->next;
+  } else {
+    p = parse_signed_number(&w, p);
+  }
 
   p = parse_signed_number(&h, p);
 

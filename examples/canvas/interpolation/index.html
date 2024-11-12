@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>WASM Test</title>
+    </head>
+    <body>
+        <div style="display: flex; flex-direction: row; gap: 20px">
+            <div style="display: flex; flex-direction: column; width: 100px">
+                <label for="x0">x0</label>
+                <input type="number" id="x0" value="-3.24" />
+                <label for="y0">y0</label>
+                <input type="number" id="y0" value="0.8" />
+            </div>
+            <div style="display: flex; flex-direction: column; width: 100px">
+                <label for="x1">x1</label>
+                <input type="number" id="x1" value="-0.69" />
+                <label for="y1">y1</label>
+                <input type="number" id="y1" value="2.91" />
+            </div>
+            <div style="display: flex; flex-direction: column; width: 100px">
+                <label for="x2">x2</label>
+                <input type="number" id="x2" value="0.44" />
+                <label for="y2">y2</label>
+                <input type="number" id="y2" value="6.5" />
+            </div>
+            <!-- <div style="display: flex; flex-direction: column; width: 100px">
+                <label for="x3">x3</label>
+                <input type="number" id="x3" value="3" />
+                <label for="y3">y3</label>
+                <input type="number" id="y3" value="9" />
+            </div>
+            <div style="display: flex; flex-direction: column; width: 100px">
+                <label for="x4">x4</label>
+                <input type="number" id="x4" value="4" />
+                <label for="y4">y4</label>
+                <input type="number" id="y4" value="16" />
+            </div> -->
+            <button id="interpolateButton">Interpolate!</button>
+        </div>
+
+        <canvas id="wasmCanvas" width="1000px" height="1000px"></canvas>
+
+        <button id="stopButton">Stoooooop!</button>
+
+        <script type="module">
+            import { getLameWasmEnv, lamePostInit } from "../../../lib/lamelib.js";
+            import { canvasPostInit, getCanvasWasmEnv } from "../canvas.js";
+
+            const canvas = document.getElementById("wasmCanvas");
+            const ctx = canvas.getContext("2d");
+
+            const { instance } = await WebAssembly.instantiateStreaming(fetch("./main.wasm"), {
+                env: {
+                    ...getCanvasWasmEnv(ctx),
+                    ...getLameWasmEnv(),
+                },
+            });
+
+            lamePostInit(instance);
+            canvasPostInit(instance);
+
+            const data = new DataView(instance.exports.memory.buffer);
+            const encoder = new TextEncoder();
+
+            function writeString(offset, str) {
+                const strEncoded = encoder.encode(str);
+                let i = 0;
+                while (i < strEncoded.length) {
+                    data.setUint8(offset + i, strEncoded[i]);
+                    i++;
+                }
+                data.setUint8(offset + i, 0);
+                return offset + i + 1;
+            }
+
+            function pushArgv(argv_ptr, strings_ptr, str) {
+                const next_string_ptr = writeString(strings_ptr, str);
+                data.setUint32(argv_ptr, strings_ptr, true);
+                const next_argv_ptr = argv_ptr + 4;
+                return [next_argv_ptr, next_string_ptr];
+            }
+
+            const FF_SCALE = 10000;
+            const TIME_SCALE = 1;
+            const TIME_OFFSET = 20000;
+
+            let stop = false;
+            let start;
+            let counter = 10000;
+
+            let x0 = document.getElementById("x0").value;
+            let y0 = document.getElementById("y0").value;
+            let x1 = document.getElementById("x1").value;
+            let y1 = document.getElementById("y1").value;
+            let x2 = document.getElementById("x2").value;
+            let y2 = document.getElementById("y2").value;
+            // let x3 = document.getElementById("x3").value;
+            // let y3 = document.getElementById("y3").value;
+            // let x4 = document.getElementById("x4").value;
+            // let y4 = document.getElementById("y4").value;
+
+            function next(timestamp) {
+                if (stop || counter-- == 0) {
+                    console.log("Stopped");
+                    return;
+                }
+
+                const argv_ptr = instance.exports.malloc(1024);
+                let next_argv_ptr = argv_ptr;
+                const strings_ptr = instance.exports.malloc(1024);
+                let next_string_ptr = strings_ptr;
+
+                const ts = (timestamp - start) / 1000 * FF_SCALE * TIME_SCALE;
+                console.log(ts);
+
+                [next_argv_ptr, next_string_ptr] = pushArgv(next_argv_ptr, next_string_ptr, Math.ceil(ts).toString());
+                [next_argv_ptr, next_string_ptr] = pushArgv(next_argv_ptr, next_string_ptr, Math.ceil(x0 * FF_SCALE).toString());
+                [next_argv_ptr, next_string_ptr] = pushArgv(next_argv_ptr, next_string_ptr, Math.ceil(y0 * FF_SCALE).toString());
+                [next_argv_ptr, next_string_ptr] = pushArgv(next_argv_ptr, next_string_ptr, Math.ceil(x1 * FF_SCALE).toString());
+                [next_argv_ptr, next_string_ptr] = pushArgv(next_argv_ptr, next_string_ptr, Math.ceil(y1 * FF_SCALE).toString());
+                [next_argv_ptr, next_string_ptr] = pushArgv(next_argv_ptr, next_string_ptr, Math.ceil(x2 * FF_SCALE).toString());
+                [next_argv_ptr, next_string_ptr] = pushArgv(next_argv_ptr, next_string_ptr, Math.ceil(y2 * FF_SCALE).toString());
+                // [next_argv_ptr, next_string_ptr] = pushArgv(next_argv_ptr, next_string_ptr, Math.ceil(x3 * FF_SCALE).toString());
+                // [next_argv_ptr, next_string_ptr] = pushArgv(next_argv_ptr, next_string_ptr, Math.ceil(y3 * FF_SCALE).toString());
+                // [next_argv_ptr, next_string_ptr] = pushArgv(next_argv_ptr, next_string_ptr, Math.ceil(x4 * FF_SCALE).toString());
+                // [next_argv_ptr, next_string_ptr] = pushArgv(next_argv_ptr, next_string_ptr, Math.ceil(y4 * FF_SCALE).toString());
+
+                try {
+                    instance.exports.main(7, argv_ptr);
+                } catch (e) {
+                    if (e.message !== "Refal machine exited: 0") {
+                        console.error(e);
+                    }
+                }
+
+                window.requestAnimationFrame(next);
+            }
+
+            function interpolate() {
+                x0 = document.getElementById("x0").value;
+                y0 = document.getElementById("y0").value;
+                x1 = document.getElementById("x1").value;
+                y1 = document.getElementById("y1").value;
+                x2 = document.getElementById("x2").value;
+                y2 = document.getElementById("y2").value;
+                // x3 = document.getElementById("x3").value;
+                // y3 = document.getElementById("y3").value;
+                // x4 = document.getElementById("x4").value;
+                // y4 = document.getElementById("y4").value;
+
+                // console.log(x0);
+                // next(69.69);
+
+                window.requestAnimationFrame((timestamp) => {
+                    start = timestamp + TIME_OFFSET;
+                    window.requestAnimationFrame(next);
+                });
+            }
+
+            document.getElementById("interpolateButton").addEventListener("click", interpolate);
+
+            document.getElementById("stopButton").addEventListener("click", () => {
+                stop = true;
+            });
+        </script>
+    </body>
+</html>

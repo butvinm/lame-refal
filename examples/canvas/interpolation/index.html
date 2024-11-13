@@ -83,11 +83,12 @@
             }
 
             const FF_SCALE = 10000;
-            const TIME_SCALE = 1;
-            const TIME_OFFSET = 20000;
+            const LEFT_BOUND = -9;
+            const MILLISECONDS_IN_SECOND = 1000;
 
             let stop = false;
             let start;
+            let previous;
             let counter = 10000;
 
             let x0 = document.getElementById("x0").value;
@@ -112,10 +113,10 @@
                 const strings_ptr = instance.exports.malloc(1024);
                 let next_string_ptr = strings_ptr;
 
-                const ts = (timestamp - start) / 1000 * FF_SCALE * TIME_SCALE;
+                const ts = (timestamp - start) / MILLISECONDS_IN_SECOND; // second == 1 on x-axis
                 console.log(ts);
 
-                [next_argv_ptr, next_string_ptr] = pushArgv(next_argv_ptr, next_string_ptr, Math.ceil(ts).toString());
+                [next_argv_ptr, next_string_ptr] = pushArgv(next_argv_ptr, next_string_ptr, Math.ceil(ts * FF_SCALE).toString());
                 [next_argv_ptr, next_string_ptr] = pushArgv(next_argv_ptr, next_string_ptr, Math.ceil(x0 * FF_SCALE).toString());
                 [next_argv_ptr, next_string_ptr] = pushArgv(next_argv_ptr, next_string_ptr, Math.ceil(y0 * FF_SCALE).toString());
                 [next_argv_ptr, next_string_ptr] = pushArgv(next_argv_ptr, next_string_ptr, Math.ceil(x1 * FF_SCALE).toString());
@@ -154,7 +155,7 @@
                 // next(69.69);
 
                 window.requestAnimationFrame((timestamp) => {
-                    start = timestamp + TIME_OFFSET;
+                    start = timestamp - LEFT_BOUND * MILLISECONDS_IN_SECOND;
                     window.requestAnimationFrame(next);
                 });
             }

@@ -65,6 +65,24 @@ static struct r05_node *parse_signed_number(
   return p->next;
 }
 
+static struct r05_node *parse_maybe_bracket_signed_number(
+  struct signed_number *sn, struct r05_node *p
+) {
+  if (R05_DATATAG_OPEN_BRACKET == p->tag) {
+    p = p->next;
+    p = parse_signed_number(sn, p);
+
+    if (R05_DATATAG_CLOSE_BRACKET != p->tag) {
+      r05_recognition_impossible();
+    }
+
+    p = p->next;
+  } else {
+    p = parse_signed_number(sn, p);
+  }
+
+  return p;
+}
 
 R05_DEFINE_ENTRY_FUNCTION(FillRect, "FillRect") {
   struct signed_number x, y, w, h;
@@ -202,31 +220,31 @@ R05_DEFINE_ENTRY_FUNCTION(FillRect, "FillRect") {
 //   );
 // }
 
-// R05_DEFINE_ENTRY_FUNCTION(BeginPath, "BeginPath") {
-//   struct r05_node *func_name, *p;
+R05_DEFINE_ENTRY_FUNCTION(BeginPath, "BeginPath") {
+  struct r05_node *func_name, *p;
 
-//   func_name = arg_begin->next;
-//   p = func_name->next;
+  func_name = arg_begin->next;
+  p = func_name->next;
 
-//   if (p != arg_end) {
-//     r05_recognition_impossible();
-//   }
+  if (p != arg_end) {
+    r05_recognition_impossible();
+  }
 
-//   beginPath();
-// }
+  beginPath();
+}
 
-// R05_DEFINE_ENTRY_FUNCTION(ClosePath, "ClosePath") {
-//   struct r05_node *func_name, *p;
+R05_DEFINE_ENTRY_FUNCTION(ClosePath, "ClosePath") {
+  struct r05_node *func_name, *p;
 
-//   func_name = arg_begin->next;
-//   p = func_name->next;
+  func_name = arg_begin->next;
+  p = func_name->next;
 
-//   if (p != arg_end) {
-//     r05_recognition_impossible();
-//   }
+  if (p != arg_end) {
+    r05_recognition_impossible();
+  }
 
-//   closePath();
-// }
+  closePath();
+}
 
 // R05_DEFINE_ENTRY_FUNCTION(MoveTo, "MoveTo") {
 //   struct signed_number x, y;
@@ -264,65 +282,60 @@ R05_DEFINE_ENTRY_FUNCTION(FillRect, "FillRect") {
 //   lineTo(x.sign*x.value, y.sign*y.value);
 // }
 
-// R05_DEFINE_ENTRY_FUNCTION(Stroke, "Stroke") {
-//   struct r05_node *func_name, *p;
+R05_DEFINE_ENTRY_FUNCTION(Stroke, "Stroke") {
+  struct r05_node *func_name, *p;
 
-//   func_name = arg_begin->next;
-//   p = func_name->next;
+  func_name = arg_begin->next;
+  p = func_name->next;
 
-//   if (p != arg_end) {
-//     r05_recognition_impossible();
-//   }
+  if (p != arg_end) {
+    r05_recognition_impossible();
+  }
 
-//   stroke();
-// }
+  stroke();
+}
 
-// R05_DEFINE_ENTRY_FUNCTION(Fill, "Fill") {
-//   struct r05_node *func_name, *p;
+R05_DEFINE_ENTRY_FUNCTION(Fill, "Fill") {
+  struct r05_node *func_name, *p;
 
-//   func_name = arg_begin->next;
-//   p = func_name->next;
+  func_name = arg_begin->next;
+  p = func_name->next;
 
-//   if (p != arg_end) {
-//     r05_recognition_impossible();
-//   }
+  if (p != arg_end) {
+    r05_recognition_impossible();
+  }
 
-//   fill();
-// }
+  fill();
+}
 
-// R05_DEFINE_ENTRY_FUNCTION(Arc, "Arc") {
-//   struct signed_number x, y, r, startAngle, endAngle, counterClockwise;
+R05_DEFINE_ENTRY_FUNCTION(Arc, "Arc") {
+  struct signed_number x, y, r, startAngle, endAngle, counterClockwise;
 
-//   struct r05_node *func_name, *p;
+  struct r05_node *func_name, *p;
 
-//   func_name = arg_begin->next;
-//   p = func_name->next;
+  func_name = arg_begin->next;
+  p = func_name->next;
 
-//   p = parse_signed_number(&x, p);
-//   p = parse_signed_number(&y, p);
-//   p = parse_signed_number(&r, p);
-//   p = parse_signed_number(&startAngle, p);
-//   p = parse_signed_number(&endAngle, p);
+  p = parse_maybe_bracket_signed_number(&x, p);
+  p = parse_maybe_bracket_signed_number(&y, p);
+  p = parse_maybe_bracket_signed_number(&r, p);
+  p = parse_maybe_bracket_signed_number(&startAngle, p);
+  p = parse_maybe_bracket_signed_number(&endAngle, p);
+  p = parse_signed_number(&counterClockwise, p);
 
-//   counterClockwise.sign = 1;  // Default is clockwise
-//   if (R05_DATATAG_NUMBER == p->tag) {
-//     counterClockwise.value = p->info.number;
-//     p = p->next;
-//   }
+  if (p != arg_end) {
+    r05_recognition_impossible();
+  }
 
-//   if (p != arg_end) {
-//     r05_recognition_impossible();
-//   }
-
-//   arc(
-//     x.sign*x.value,
-//     y.sign*y.value,
-//     r.sign*r.value,
-//     startAngle.sign*startAngle.value,
-//     endAngle.sign*endAngle.value,
-//     counterClockwise.sign*counterClockwise.value
-//   );
-// }
+  arc(
+    x.sign*x.value,
+    y.sign*y.value,
+    r.sign*r.value,
+    startAngle.sign*startAngle.value,
+    endAngle.sign*endAngle.value,
+    counterClockwise.sign*counterClockwise.value
+  );
+}
 
 // R05_DEFINE_ENTRY_FUNCTION(ArcTo, "ArcTo") {
 //   struct signed_number x1, y1, x2, y2, r;

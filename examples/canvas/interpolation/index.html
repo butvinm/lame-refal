@@ -7,42 +7,32 @@
     </head>
     <body>
         <div style="display: flex; flex-direction: row; gap: 20px">
-            <div style="display: flex; flex-direction: column; width: 100px">
-                <label for="x0">x0</label>
-                <input type="number" id="x0" value="-3.24" />
-                <label for="y0">y0</label>
-                <input type="number" id="y0" value="0.8" />
-            </div>
-            <div style="display: flex; flex-direction: column; width: 100px">
-                <label for="x1">x1</label>
-                <input type="number" id="x1" value="-0.69" />
-                <label for="y1">y1</label>
-                <input type="number" id="y1" value="2.91" />
-            </div>
-            <div style="display: flex; flex-direction: column; width: 100px">
-                <label for="x2">x2</label>
-                <input type="number" id="x2" value="0.44" />
-                <label for="y2">y2</label>
-                <input type="number" id="y2" value="6.5" />
-            </div>
-            <!-- <div style="display: flex; flex-direction: column; width: 100px">
-                <label for="x3">x3</label>
-                <input type="number" id="x3" value="3" />
-                <label for="y3">y3</label>
-                <input type="number" id="y3" value="9" />
-            </div>
-            <div style="display: flex; flex-direction: column; width: 100px">
-                <label for="x4">x4</label>
-                <input type="number" id="x4" value="4" />
-                <label for="y4">y4</label>
-                <input type="number" id="y4" value="16" />
-            </div> -->
+            <textarea
+                id="points"
+                rows="12"
+                placeholder="x0;y0
+x1;y1
+x2;y2
+x3;y3
+x4;y4
+"
+            >-3.24;0.8
+-0.88;3.77
+1.5;3.47
+2.6;5.66
+4.15;7.86
+5.7;8.02
+7.52;9.75
+8.44;11.46
+9.63;11.15
+10.58;12.63
+11.54;14.74
+12.7;12.86</textarea>
             <button id="interpolateButton">Interpolate!</button>
+            <button id="stopButton">Stoooooop!</button>
         </div>
 
         <canvas id="wasmCanvas" width="1000px" height="1000px"></canvas>
-
-        <button id="stopButton">Stoooooop!</button>
 
         <script type="module">
             import { getLameWasmEnv, lamePostInit } from "../../../lib/lamelib.js";
@@ -83,50 +73,33 @@
             }
 
             const FF_SCALE = 10000;
-            const LEFT_BOUND = -9;
+            const LEFT_BOUND = 0;
             const MILLISECONDS_IN_SECOND = 1000;
 
             let stop = false;
             let start;
             let previous;
-            let counter = 10000;
-
-            let x0 = document.getElementById("x0").value;
-            let y0 = document.getElementById("y0").value;
-            let x1 = document.getElementById("x1").value;
-            let y1 = document.getElementById("y1").value;
-            let x2 = document.getElementById("x2").value;
-            let y2 = document.getElementById("y2").value;
-            // let x3 = document.getElementById("x3").value;
-            // let y3 = document.getElementById("y3").value;
-            // let x4 = document.getElementById("x4").value;
-            // let y4 = document.getElementById("y4").value;
+            const MAX_STEPS = 1000;
+            let steps = MAX_STEPS;
 
             function next(timestamp) {
-                if (stop || counter-- == 0) {
+                if (stop || steps-- == 0) {
                     console.log("Stopped");
                     return;
                 }
 
                 const argv_ptr = instance.exports.malloc(1024);
                 let next_argv_ptr = argv_ptr;
-                const strings_ptr = instance.exports.malloc(1024);
+                const strings_ptr = instance.exports.malloc(4096);
                 let next_string_ptr = strings_ptr;
 
                 const ts = (timestamp - start) / MILLISECONDS_IN_SECOND; // second == 1 on x-axis
                 console.log(ts);
 
-                [next_argv_ptr, next_string_ptr] = pushArgv(next_argv_ptr, next_string_ptr, Math.ceil(ts * FF_SCALE).toString());
-                [next_argv_ptr, next_string_ptr] = pushArgv(next_argv_ptr, next_string_ptr, Math.ceil(x0 * FF_SCALE).toString());
-                [next_argv_ptr, next_string_ptr] = pushArgv(next_argv_ptr, next_string_ptr, Math.ceil(y0 * FF_SCALE).toString());
-                [next_argv_ptr, next_string_ptr] = pushArgv(next_argv_ptr, next_string_ptr, Math.ceil(x1 * FF_SCALE).toString());
-                [next_argv_ptr, next_string_ptr] = pushArgv(next_argv_ptr, next_string_ptr, Math.ceil(y1 * FF_SCALE).toString());
-                [next_argv_ptr, next_string_ptr] = pushArgv(next_argv_ptr, next_string_ptr, Math.ceil(x2 * FF_SCALE).toString());
-                [next_argv_ptr, next_string_ptr] = pushArgv(next_argv_ptr, next_string_ptr, Math.ceil(y2 * FF_SCALE).toString());
-                // [next_argv_ptr, next_string_ptr] = pushArgv(next_argv_ptr, next_string_ptr, Math.ceil(x3 * FF_SCALE).toString());
-                // [next_argv_ptr, next_string_ptr] = pushArgv(next_argv_ptr, next_string_ptr, Math.ceil(y3 * FF_SCALE).toString());
-                // [next_argv_ptr, next_string_ptr] = pushArgv(next_argv_ptr, next_string_ptr, Math.ceil(x4 * FF_SCALE).toString());
-                // [next_argv_ptr, next_string_ptr] = pushArgv(next_argv_ptr, next_string_ptr, Math.ceil(y4 * FF_SCALE).toString());
+                const points = document.getElementById("points").value;
+
+                [next_argv_ptr, next_string_ptr] = pushArgv(next_argv_ptr, next_string_ptr, ts.toString());
+                [next_argv_ptr, next_string_ptr] = pushArgv(next_argv_ptr, next_string_ptr, points);
 
                 try {
                     instance.exports.main(7, argv_ptr);
@@ -140,20 +113,8 @@
             }
 
             function interpolate() {
-                x0 = document.getElementById("x0").value;
-                y0 = document.getElementById("y0").value;
-                x1 = document.getElementById("x1").value;
-                y1 = document.getElementById("y1").value;
-                x2 = document.getElementById("x2").value;
-                y2 = document.getElementById("y2").value;
-                // x3 = document.getElementById("x3").value;
-                // y3 = document.getElementById("y3").value;
-                // x4 = document.getElementById("x4").value;
-                // y4 = document.getElementById("y4").value;
-
-                // console.log(x0);
-                // next(69.69);
-
+                steps = MAX_STEPS;
+                ctx.clearRect(0, 0, 1000, 1000);
                 window.requestAnimationFrame((timestamp) => {
                     start = timestamp - LEFT_BOUND * MILLISECONDS_IN_SECOND;
                     window.requestAnimationFrame(next);

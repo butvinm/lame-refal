@@ -1,121 +1,150 @@
-*FROM Canvas
-$EXTERN FillRect, SetFillStyle;
+*$FROM Canvas
+$EXTERN SetFillStyle;
+$EXTERN BeginPath;
+/* $EXTERN Stroke; */
+$EXTERN Fill;
+$EXTERN Arc;
 
+*$FROM LibraryEx
+$EXTERN Map;
+$EXTERN Inc;
+$EXTERN Reduce;
+$EXTERN Trim;
 
 $ENTRY Go {
   =
     <Next
-      (<SpeedScale <Numb <Arg 0>>>)
-      (<Numb <Arg 1>>)
-      (<Numb <Arg 2>>)
-      (<Numb <Arg 3>>)
-      (<Numb <Arg 4>>)
-      (<Numb <Arg 5>>)
-      (<Numb <Arg 6>>)
-    >
+      (<JSFloatToFF <Arg 0>>)
+      <ParsePoints <Arg 1>>
+    >;
 }
 
-SpeedScale {e.A = <Mul (e.A) 2>}
+ParsePoints {
+  e.Points = <Map (ParseRow) <Split '\n' <Trim e.Points>>>;
+}
 
-CanvasCenterX { = 500 }
-CanvasCenterY { = 500 }
-CanvasScale { e.A = <Mul (e.A) 10> }
+ParseRow {
+  (e.Row) = (<Map JSFloatToFF-Bracketed <Split ';' e.Row>>);
+}
 
-FFScale { e.A = <Div (e.A) 10000> };
-FFScaleH { e.A = <Div (e.A) 100> };
+Split {
+  s.Del e.StrB s.Del e.StrE = (e.StrB) <Split s.Del e.StrE>;
+  s.Del e.Str = (e.Str);
+}
+
+JSFloatToFF-Bracketed {
+  (e.Float) = (<JSFloatToFF e.Float>);
+}
+
+JSFloatToFF {
+  e.Int '.' s.F0 s.F1 s.F2 s.F3 e.Rest = <Numb e.Int s.F0 s.F1 s.F2 s.F3>;
+  e.Int '.' s.F0 s.F1 s.F2 = <Numb e.Int s.F0 s.F1 s.F2 '0'>;
+  e.Int '.' s.F0 s.F1 = <Numb e.Int s.F0 s.F1 '0' '0'>;
+  e.Int '.' s.F0 = <Numb e.Int s.F0 '0' '0' '0'>;
+  e.Int = <Numb e.Int '0' '0' '0' '0'>;
+}
+
+FFInt { e.A = <Div (e.A) 10000> };
+
+FFIntH { e.A = <Div (e.A) 100> };
+
+FFUpScale { e.A = <Mul (e.A) 10000> };
 
 FFWrap {
-  s.A = s.A;
-  '-' s.A = '-' s.A;
-  '-' s.A e.B = '-' <FFWrap e.B>;
-  s.A e.B = <FFWrap e.B>;
+  '-' s.A e.B = '-' s.A;
+  s.A e.B = s.A;
 }
 
-FFMul {
-  (e.A) e.B = <FFWrap <Mul (<FFScaleH e.A>) <FFScaleH e.B>>>;
-}
+FFMul { (e.A) e.B = <FFWrap <Mul (<FFIntH e.A>) <FFIntH e.B>>> }
 
 FFDiv {
-  (e.A) e.B = <FFWrap <Div (e.A) <FFScale e.B>>>;
+  (e.A) e.B = <FFWrap <Div (<FFUpScale e.A>) e.B>>;
+  (e.A) 0 = 4294967295;
+  (e.A) '-' 0 = '-' 4294967295;
 }
 
-FFAdd {
-  (e.A) e.B = <FFWrap <Add (e.A) e.B>>;
-}
+FFAdd { (e.A) e.B = <FFWrap <Add (e.A) e.B>> }
 
-FFSub {
-  (e.A) e.B = <FFWrap <Sub (e.A) e.B>>;
-}
+FFSub { (e.A) e.B = <FFWrap <Sub (e.A) e.B>> }
 
 Next {
-  (e.x)
-  (e.x0) (e.y0)
-  (e.x1) (e.y1)
-  (e.x2) (e.y2) =
-    <Prout
-      'e.x:  ' e.x ' '
-      'e.x0: ' e.x0 ' '
-      'e.y0: ' e.y0 ' '
-      'e.x1: ' e.x1 ' '
-      'e.y1: ' e.y1 ' '
-      'e.x2: ' e.x2 ' '
-      'e.y2: ' e.y2 ' '
-    >
-    <Draw
-      (e.x)
-      (<P3
-        (e.x)
-        (e.x0) (e.y0)
-        (e.x1) (e.y1)
-        (e.x2) (e.y2)
-      >)
-    >
+  (e.X) e.Points =
+    <SetFillStyle 'rgb(0 0 0)'> <Map (DrawPoint 5) e.Points>
+    <SetFillStyle 'rgb(255 0 0)'> <DrawPoint 1 ((e.X) (<Lagrange (e.X) e.Points>))>;
 }
 
-
-Draw {
-  (e.x) (e.y) =
-    <SetFillStyle 'rgb(0 0 0)'>
-    <FillRect
-      (<Add
-        (<FFScale <CanvasScale e.x>>)
-        <CanvasCenterX>
-      >)
-      (<Sub
-        (<CanvasCenterY>)
-        <FFScale <CanvasScale e.y>>
-      >)
-      2
-      2
-    >
-}
-
-P3 {
-  (e.x)
-  (e.x0) (e.y0)
-  (e.x1) (e.y1)
-  (e.x2) (e.y2)
-  =
-    <FFAdd
-      (<FFMul (<L0 (e.x) (e.x0) (e.x1) (e.x2)>) e.y0>)
-      <FFAdd
-        (<FFMul (<L1 (e.x) (e.x0) (e.x1) (e.x2)>) e.y1>)
-        <FFMul (<L2 (e.x) (e.x0) (e.x1) (e.x2)>) e.y2>
+Lagrange {
+  (e.X) e.Points
+    = <Lagrange-Unwrap
+      <Reduce
+        (Lagrange-Sum (e.X) <ExtractXs e.Points>)
+        ((0) 0)
+        e.Points
       >
+  >;
+}
+
+Lagrange-Unwrap {
+  ((e.Acc) s.I) = e.Acc;
+}
+
+Lagrange-Sum {
+  (e.X) e.Xs ((e.Acc) s.I) ((e.Xi) (e.Yi))
+    = (
+      (<FFAdd (e.Acc) <FFMul (e.Yi) <Li s.I (e.X) (e.Xi) e.Xs>>>)
+      <Inc s.I>
+    );
+}
+
+ExtractXs {
+  /* empty */ = /* empty */;
+  ((e.X) (e.Y)) e.Points = (e.X) <ExtractXs e.Points>;
+}
+
+Li {
+  s.I (e.X) (e.Xi) e.Xs
+    = <Li-Unwrap
+      <Reduce
+        (Li-Product s.I (e.X) (e.Xi))
+        ((<FFUpScale 1>) 0)
+        e.Xs
+      >
+    >;
+}
+
+Li-Unwrap {
+  ((e.Acc) s.J) = e.Acc;
+}
+
+Li-Product {
+  /* i == j => skip, j++ */
+  s.I (e.X) (e.Xi)
+  ((e.Acc) s.I) (e.Xj)
+    = (
+      (e.Acc)
+      <Inc s.I>
+    );
+
+  /* i != j => acc*((x - xj) / (xi - xj)), j++ */
+  s.I (e.X) (e.Xi)
+  ((e.Acc) s.J) (e.Xj)
+    = (
+      (<FFMul (e.Acc) <FFDiv (<FFSub (e.X) e.Xj>) <FFSub (e.Xi) e.Xj>>>)
+      <Inc s.J>
+    );
+}
+
+ToCanvasCenterX { e.A = <Add (e.A) 500> }
+ToCanvasCenterY { e.A = <Sub 500 e.A> }
+CanvasScale { e.A = <Mul (e.A) 10> }
+
+DrawPoint {
+  s.R ((e.X) (e.Y)) =
+    <BeginPath>
+    <Arc
+      (<ToCanvasCenterX <FFInt <CanvasScale e.X>>>)
+      (<ToCanvasCenterY <FFInt <CanvasScale e.Y>>>)
+      s.R 0 7 0
     >
-}
-
-L0 {
-  (e.x) (e.x0) (e.x1) (e.x2) =
-    <FFDiv (<FFMul (<FFSub (e.x) e.x1>) <FFSub (e.x) e.x2>>) <FFMul (<FFSub (e.x0) e.x1>) <FFSub (e.x0) e.x2>>>
-}
-
-L1 {
-  (e.x) (e.x0) (e.x1) (e.x2) =
-    <FFDiv (<FFMul (<FFSub (e.x) e.x0>) <FFSub (e.x) e.x2>>) <FFMul (<FFSub (e.x1) e.x0>) <FFSub (e.x1) e.x2>>>
-}
-
-L2 {
-  (e.x) (e.x0) (e.x1) (e.x2) =
-    <FFDiv (<FFMul (<FFSub (e.x) e.x0>) <FFSub (e.x) e.x1>>) <FFMul (<FFSub (e.x2) e.x0>) <FFSub (e.x2) e.x1>>>
+    <Fill>;
 }

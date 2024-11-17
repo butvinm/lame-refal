@@ -16,23 +16,27 @@ x2;y2
 x3;y3
 x4;y4
 "
-            >-3.24;0.8
+            >
+-3.24;0.8
 -0.88;3.77
 1.5;3.47
 2.6;5.66
 4.15;7.86
 5.7;8.02
 7.52;9.75
+</textarea
+            >
+            <!--
 8.44;11.46
 9.63;11.15
 10.58;12.63
 11.54;14.74
-12.7;12.86</textarea>
+12.7;12.86 -->
             <button id="interpolateButton">Interpolate!</button>
             <button id="stopButton">Stoooooop!</button>
         </div>
 
-        <canvas id="wasmCanvas" width="1000px" height="1000px"></canvas>
+        <canvas id="wasmCanvas" width="2000px" height="2000px"></canvas>
 
         <script type="module">
             import { getLameWasmEnv, lamePostInit } from "../../../lib/lamelib.js";
@@ -72,8 +76,9 @@ x4;y4
                 return [next_argv_ptr, next_string_ptr];
             }
 
-            const FF_SCALE = 10000;
-            const LEFT_BOUND = 0;
+            const FF_SCALE = 1000;
+            const LOWER_BOUND = -4;
+            const UPPER_BOUND = 12;
             const MILLISECONDS_IN_SECOND = 1000;
 
             let stop = false;
@@ -95,6 +100,10 @@ x4;y4
 
                 const ts = (timestamp - start) / MILLISECONDS_IN_SECOND; // second == 1 on x-axis
                 console.log(ts);
+                if (ts > UPPER_BOUND) {
+                    console.log("Reached upper bound");
+                    return;
+                }
 
                 const points = document.getElementById("points").value;
 
@@ -116,7 +125,7 @@ x4;y4
                 steps = MAX_STEPS;
                 ctx.clearRect(0, 0, 1000, 1000);
                 window.requestAnimationFrame((timestamp) => {
-                    start = timestamp - LEFT_BOUND * MILLISECONDS_IN_SECOND;
+                    start = timestamp - LOWER_BOUND * MILLISECONDS_IN_SECOND;
                     window.requestAnimationFrame(next);
                 });
             }

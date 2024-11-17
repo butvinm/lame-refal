@@ -1,6 +1,7 @@
 *$FROM Canvas
 $EXTERN SetFillStyle;
 $EXTERN BeginPath;
+
 /* $EXTERN Stroke; */
 $EXTERN Fill;
 $EXTERN Arc;
@@ -14,6 +15,7 @@ $EXTERN Trim;
 $ENTRY Go {
   =
     <Next
+      /* (0) */
       (<JSFloatToFF <Arg 0>>)
       <ParsePoints <Arg 1>>
     >;
@@ -37,25 +39,24 @@ JSFloatToFF-Bracketed {
 }
 
 JSFloatToFF {
-  e.Int '.' s.F0 s.F1 s.F2 s.F3 e.Rest = <Numb e.Int s.F0 s.F1 s.F2 s.F3>;
-  e.Int '.' s.F0 s.F1 s.F2 = <Numb e.Int s.F0 s.F1 s.F2 '0'>;
-  e.Int '.' s.F0 s.F1 = <Numb e.Int s.F0 s.F1 '0' '0'>;
-  e.Int '.' s.F0 = <Numb e.Int s.F0 '0' '0' '0'>;
-  e.Int = <Numb e.Int '0' '0' '0' '0'>;
+  e.Int '.' s.F0 s.F1 s.F2 e.Rest = <Numb e.Int s.F0 s.F1 s.F2>;
+  e.Int '.' s.F0 s.F1 = <Numb e.Int s.F0 s.F1 '0'>;
+  e.Int '.' s.F0 = <Numb e.Int s.F0 '0' '0'>;
+  e.Int = <Numb e.Int '0' '0' '0'>;
 }
 
-FFInt { e.A = <Div (e.A) 10000> };
+FFInt { e.A = <FFDownScale e.A> };
 
-FFIntH { e.A = <Div (e.A) 100> };
+FFUpScale { e.A = <Mul (e.A) 1000> };
 
-FFUpScale { e.A = <Mul (e.A) 10000> };
+FFDownScale { e.A = <Div (e.A) 1000> };
 
 FFWrap {
   '-' s.A e.B = '-' s.A;
   s.A e.B = s.A;
 }
 
-FFMul { (e.A) e.B = <FFWrap <Mul (<FFIntH e.A>) <FFIntH e.B>>> }
+FFMul { (e.A) e.B = <FFWrap <FFInt <Mul (e.A) e.B>>> }
 
 FFDiv {
   (e.A) e.B = <FFWrap <Div (<FFUpScale e.A>) e.B>>;
@@ -69,8 +70,9 @@ FFSub { (e.A) e.B = <FFWrap <Sub (e.A) e.B>> }
 
 Next {
   (e.X) e.Points =
-    <SetFillStyle 'rgb(0 0 0)'> <Map (DrawPoint 5) e.Points>
-    <SetFillStyle 'rgb(255 0 0)'> <DrawPoint 1 ((e.X) (<Lagrange (e.X) e.Points>))>;
+    <SetFillStyle 'rgb(0 0 0)'> <Map (DrawPoint 2) e.Points>
+    <SetFillStyle 'rgb(255 0 0)'> <DrawPoint 1 ((e.X) (<Lagrange (e.X) e.Points>))>
+    <SetFillStyle 'rgb(0 0 255)'> <DrawPoint 1 ((e.X) (<Linear (e.X) e.Points>))>;
 }
 
 Lagrange {
@@ -81,7 +83,7 @@ Lagrange {
         ((0) 0)
         e.Points
       >
-  >;
+    >;
 }
 
 Lagrange-Unwrap {
@@ -134,9 +136,28 @@ Li-Product {
     );
 }
 
+Linear {
+  (e.X) ((e.X0) (e.Y0)) ((e.X1) (e.Y1)) ((e.X2) (e.Y2)) e.Points
+  , <Compare (e.X) e.X1> : '+'
+    = <Linear (e.X) ((e.X1) (e.Y1)) ((e.X2) (e.Y2)) e.Points>;
+
+  /* x <= x1 || only two points left */
+  (e.X) ((e.X0) (e.Y0)) ((e.X1) (e.Y1)) e.Points
+    = <FFAdd
+      (e.Y0)
+      <FFMul
+        (<FFSub (e.X) e.X0>)
+        <FFDiv
+          (<FFSub (e.Y1) e.Y0>)
+          <FFSub (e.X1) e.X0>
+        >
+      >
+    >;
+}
+
 ToCanvasCenterX { e.A = <Add (e.A) 500> }
 ToCanvasCenterY { e.A = <Sub 500 e.A> }
-CanvasScale { e.A = <Mul (e.A) 10> }
+CanvasScale { e.A = <Mul (e.A) 30> }
 
 DrawPoint {
   s.R ((e.X) (e.Y)) =

@@ -11,63 +11,60 @@ $EXTERN FPF-FromInt;
 
 $ENTRY Lagrange {
   (e.X) e.Points
-    = <Lagrange-Unwrap
+    = <DropIndex
       <Reduce
-        (Lagrange-Sum (e.X) <ExtractXs e.Points>)
-        ((0) 0)
+        (Lagrange-Sum (e.X) e.Points)
+        (0 <FPF-FromInt 0>)
         e.Points
       >
     >;
 }
 
-Lagrange-Unwrap {
-  ((e.Acc) s.I) = e.Acc;
-}
-
 Lagrange-Sum {
-  (e.X) e.Xs ((e.Acc) s.I) ((e.Xi) (e.Yi))
+  (e.X) e.Points (s.I e.Acc) ((e.Xi) (e.Yi))
     = (
-      (<FPF-Add (e.Acc) <FPF-Mul (e.Yi) <Li s.I (e.X) (e.Xi) e.Xs>>>)
       <Inc s.I>
+      <FPF-Add
+        (e.Acc)
+        <FPF-Mul (e.Yi) <Li s.I (e.X) (e.Xi) e.Points>>
+      >
     );
 }
 
-ExtractXs {
-  /* empty */ = /* empty */;
-  ((e.X) (e.Y)) e.Points = (e.X) <ExtractXs e.Points>;
-}
-
 Li {
-  s.I (e.X) (e.Xi) e.Xs
-    = <Li-Unwrap
+  s.I (e.X) (e.Xi) e.Points
+    = <DropIndex
       <Reduce
         (Li-Product s.I (e.X) (e.Xi))
-        ((<FPF-FromInt 1>) 0)
-        e.Xs
+        (0 <FPF-FromInt 1>)
+        e.Points
       >
     >;
-}
-
-Li-Unwrap {
-  ((e.Acc) s.J) = e.Acc;
 }
 
 Li-Product {
   /* i == j => skip, j++ */
   s.I (e.X) (e.Xi)
-  ((e.Acc) s.I) (e.Xj)
+  (s.I e.Acc) ((e.Xj) (e.Yj))
     = (
-      (e.Acc)
       <Inc s.I>
+      e.Acc
     );
 
   /* i != j => acc*((x - xj) / (xi - xj)), j++ */
   s.I (e.X) (e.Xi)
-  ((e.Acc) s.J) (e.Xj)
+  (s.J e.Acc) ((e.Xj) (e.Yj))
     = (
-      (<FPF-Mul (e.Acc) <FPF-Div (<FPF-Sub (e.X) e.Xj>) <FPF-Sub (e.Xi) e.Xj>>>)
       <Inc s.J>
+      <FPF-Mul
+        (e.Acc)
+        <FPF-Div (<FPF-Sub (e.X) e.Xj>) <FPF-Sub (e.Xi) e.Xj>>
+      >
     );
+}
+
+DropIndex {
+  (s.I e.Acc) = e.Acc;
 }
 
 $ENTRY Linear {

@@ -17,26 +17,30 @@ x3;y3
 x4;y4
 "
             >
--3.24;0.8
--0.88;3.77
-1.5;3.47
-2.6;5.66
-4.15;7.86
-5.7;8.02
-7.52;9.75
+            -3.24;0.8
+            -0.88;3.77
+            1.5;3.47
+            5.7;8.02
+            7.52;9.75
 </textarea
             >
-            <!--
-8.44;11.46
-9.63;11.15
-10.58;12.63
-11.54;14.74
-12.7;12.86 -->
-            <button id="interpolateButton">Interpolate!</button>
-            <button id="stopButton">Stoooooop!</button>
+            <div style="display: flex; flex-direction: column; gap: 20px; width: 200px">
+                <button id="interpolateButton">Interpolate!</button>
+                <button id="stopButton">Stoooooop!</button>
+                <label>Lower bound:</label>
+                <div style="display: flex; justify-content: space-between; align-items: center">
+                    <input type="range" step="0.1" min="-10" max="0" value="-10" id="lowerSlider" />
+                    <strong id="lowerView" style>-10</strong>
+                </div>
+                <label>Upper bound:</label>
+                <div style="display: flex; justify-content: space-between; align-items: center">
+                    <input type="range" step="0.1" min="0" max="10" value="10" id="upperSlider" />
+                    <strong id="upperView" style>10</strong>
+                </div>
+            </div>
         </div>
 
-        <canvas id="wasmCanvas" width="2000px" height="2000px"></canvas>
+        <canvas id="wasmCanvas" width="1000px" height="1000px" style="border: black solid 1px"></canvas>
 
         <script type="module">
             import { getLameWasmEnv, lamePostInit } from "../../../lib/lamelib.js";
@@ -77,14 +81,14 @@ x4;y4
             }
 
             const FF_SCALE = 1000;
-            const LOWER_BOUND = -4;
-            const UPPER_BOUND = 10;
+            let lowerBound = -10;
+            let upperBound = 10;
             const MILLISECONDS_IN_SECOND = 1000;
 
             let stop = false;
             let start;
             let previous;
-            const MAX_STEPS = 1000;
+            const MAX_STEPS = 2000;
             let steps = MAX_STEPS;
 
             function next(timestamp) {
@@ -100,7 +104,7 @@ x4;y4
 
                 const ts = (timestamp - start) / MILLISECONDS_IN_SECOND; // second == 1 on x-axis
                 console.log(ts);
-                if (ts > UPPER_BOUND) {
+                if (ts > upperBound) {
                     console.log("Reached upper bound");
                     return;
                 }
@@ -122,10 +126,11 @@ x4;y4
             }
 
             function interpolate() {
+                stop = false;
                 steps = MAX_STEPS;
                 ctx.clearRect(0, 0, 1000, 1000);
                 window.requestAnimationFrame((timestamp) => {
-                    start = timestamp - LOWER_BOUND * MILLISECONDS_IN_SECOND;
+                    start = timestamp - lowerBound * MILLISECONDS_IN_SECOND;
                     window.requestAnimationFrame(next);
                 });
             }
@@ -134,6 +139,18 @@ x4;y4
 
             document.getElementById("stopButton").addEventListener("click", () => {
                 stop = true;
+            });
+
+            const lowerView = document.getElementById("lowerView");
+            document.getElementById("lowerSlider").addEventListener("input", (event) => {
+                console.log(event.target.value);
+                lowerBound = event.target.value;
+                lowerView.innerHTML = lowerBound;
+            });
+
+            document.getElementById("upperSlider").addEventListener("input", (event) => {
+                upperBound = event.target.value;
+                upperView.innerHTML = upperBound;
             });
         </script>
     </body>

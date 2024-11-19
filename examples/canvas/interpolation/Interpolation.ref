@@ -1,0 +1,90 @@
+*$FROM LibraryEx
+$EXTERN Inc;
+$EXTERN Reduce;
+
+*$FROM FPF
+$EXTERN FPF-Add;
+$EXTERN FPF-Div;
+$EXTERN FPF-Mul;
+$EXTERN FPF-Sub;
+$EXTERN FPF-FromInt;
+
+$ENTRY Lagrange {
+  (e.X) e.Points
+    = <Lagrange-Unwrap
+      <Reduce
+        (Lagrange-Sum (e.X) <ExtractXs e.Points>)
+        ((0) 0)
+        e.Points
+      >
+    >;
+}
+
+Lagrange-Unwrap {
+  ((e.Acc) s.I) = e.Acc;
+}
+
+Lagrange-Sum {
+  (e.X) e.Xs ((e.Acc) s.I) ((e.Xi) (e.Yi))
+    = (
+      (<FPF-Add (e.Acc) <FPF-Mul (e.Yi) <Li s.I (e.X) (e.Xi) e.Xs>>>)
+      <Inc s.I>
+    );
+}
+
+ExtractXs {
+  /* empty */ = /* empty */;
+  ((e.X) (e.Y)) e.Points = (e.X) <ExtractXs e.Points>;
+}
+
+Li {
+  s.I (e.X) (e.Xi) e.Xs
+    = <Li-Unwrap
+      <Reduce
+        (Li-Product s.I (e.X) (e.Xi))
+        ((<FPF-FromInt 1>) 0)
+        e.Xs
+      >
+    >;
+}
+
+Li-Unwrap {
+  ((e.Acc) s.J) = e.Acc;
+}
+
+Li-Product {
+  /* i == j => skip, j++ */
+  s.I (e.X) (e.Xi)
+  ((e.Acc) s.I) (e.Xj)
+    = (
+      (e.Acc)
+      <Inc s.I>
+    );
+
+  /* i != j => acc*((x - xj) / (xi - xj)), j++ */
+  s.I (e.X) (e.Xi)
+  ((e.Acc) s.J) (e.Xj)
+    = (
+      (<FPF-Mul (e.Acc) <FPF-Div (<FPF-Sub (e.X) e.Xj>) <FPF-Sub (e.Xi) e.Xj>>>)
+      <Inc s.J>
+    );
+}
+
+$ENTRY Linear {
+  (e.X) ((e.X0) (e.Y0)) ((e.X1) (e.Y1)) ((e.X2) (e.Y2)) e.Points
+  , <Compare (e.X) e.X1> : '+'
+    = <Linear (e.X) ((e.X1) (e.Y1)) ((e.X2) (e.Y2)) e.Points>;
+
+  /* x <= x1 || only two points left */
+  (e.X) ((e.X0) (e.Y0)) ((e.X1) (e.Y1)) e.Points
+    = <FPF-Add
+      (e.Y0)
+      <FPF-Mul
+        (<FPF-Sub (e.X) e.X0>)
+        <FPF-Div
+          (<FPF-Sub (e.Y1) e.Y0>)
+          <FPF-Sub (e.X1) e.X0>
+        >
+      >
+    >;
+}

@@ -1,0 +1,24 @@
+$ENTRY FPF-ToInt { e.A = <FPF-DownScale e.A> };
+
+$ENTRY FPF-FromInt { e.A = <Mul (e.A) 1000> };
+
+$ENTRY FPF-UpScale { e.A = <Mul (e.A) 1000> };
+
+$ENTRY FPF-DownScale { e.A = <Div (e.A) 1000> };
+
+$ENTRY FPF-Wrap {
+  '-' s.A e.B = '-' s.A;
+  s.A e.B = s.A;
+}
+
+$ENTRY FPF-Mul { (e.A) e.B = <FPF-Wrap <FPF-DownScale <Mul (e.A) e.B>>> }
+
+$ENTRY FPF-Div {
+  (e.A) e.B = <FPF-Wrap <Div (<FPF-UpScale e.A>) e.B>>;
+  (e.A) 0 = 4294967295;
+  (e.A) '-' 0 = '-' 4294967295;
+}
+
+$ENTRY FPF-Add { (e.A) e.B = <FPF-Wrap <Add (e.A) e.B>> }
+
+$ENTRY FPF-Sub { (e.A) e.B = <FPF-Wrap <Sub (e.A) e.B>> }

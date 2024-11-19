@@ -1,16 +1,19 @@
 *$FROM Canvas
 $EXTERN SetFillStyle;
 $EXTERN BeginPath;
-
-/* $EXTERN Stroke; */
 $EXTERN Fill;
 $EXTERN Arc;
 
 *$FROM LibraryEx
 $EXTERN Map;
-$EXTERN Inc;
-$EXTERN Reduce;
 $EXTERN Trim;
+
+*$FROM FPF
+$EXTERN FPF-ToInt;
+
+*$FROM Interpolation
+$EXTERN Linear;
+$EXTERN Lagrange;
 
 $ENTRY Go {
   =
@@ -45,28 +48,6 @@ JSFloatToFF {
   e.Int = <Numb e.Int '0' '0' '0'>;
 }
 
-FFInt { e.A = <FFDownScale e.A> };
-
-FFUpScale { e.A = <Mul (e.A) 1000> };
-
-FFDownScale { e.A = <Div (e.A) 1000> };
-
-FFWrap {
-  '-' s.A e.B = '-' s.A;
-  s.A e.B = s.A;
-}
-
-FFMul { (e.A) e.B = <FFWrap <FFInt <Mul (e.A) e.B>>> }
-
-FFDiv {
-  (e.A) e.B = <FFWrap <Div (<FFUpScale e.A>) e.B>>;
-  (e.A) 0 = 4294967295;
-  (e.A) '-' 0 = '-' 4294967295;
-}
-
-FFAdd { (e.A) e.B = <FFWrap <Add (e.A) e.B>> }
-
-FFSub { (e.A) e.B = <FFWrap <Sub (e.A) e.B>> }
 
 Next {
   (e.X) e.Points =
@@ -75,85 +56,7 @@ Next {
     <SetFillStyle 'rgb(0 0 255)'> <DrawPoint 1 ((e.X) (<Linear (e.X) e.Points>))>;
 }
 
-Lagrange {
-  (e.X) e.Points
-    = <Lagrange-Unwrap
-      <Reduce
-        (Lagrange-Sum (e.X) <ExtractXs e.Points>)
-        ((0) 0)
-        e.Points
-      >
-    >;
-}
 
-Lagrange-Unwrap {
-  ((e.Acc) s.I) = e.Acc;
-}
-
-Lagrange-Sum {
-  (e.X) e.Xs ((e.Acc) s.I) ((e.Xi) (e.Yi))
-    = (
-      (<FFAdd (e.Acc) <FFMul (e.Yi) <Li s.I (e.X) (e.Xi) e.Xs>>>)
-      <Inc s.I>
-    );
-}
-
-ExtractXs {
-  /* empty */ = /* empty */;
-  ((e.X) (e.Y)) e.Points = (e.X) <ExtractXs e.Points>;
-}
-
-Li {
-  s.I (e.X) (e.Xi) e.Xs
-    = <Li-Unwrap
-      <Reduce
-        (Li-Product s.I (e.X) (e.Xi))
-        ((<FFUpScale 1>) 0)
-        e.Xs
-      >
-    >;
-}
-
-Li-Unwrap {
-  ((e.Acc) s.J) = e.Acc;
-}
-
-Li-Product {
-  /* i == j => skip, j++ */
-  s.I (e.X) (e.Xi)
-  ((e.Acc) s.I) (e.Xj)
-    = (
-      (e.Acc)
-      <Inc s.I>
-    );
-
-  /* i != j => acc*((x - xj) / (xi - xj)), j++ */
-  s.I (e.X) (e.Xi)
-  ((e.Acc) s.J) (e.Xj)
-    = (
-      (<FFMul (e.Acc) <FFDiv (<FFSub (e.X) e.Xj>) <FFSub (e.Xi) e.Xj>>>)
-      <Inc s.J>
-    );
-}
-
-Linear {
-  (e.X) ((e.X0) (e.Y0)) ((e.X1) (e.Y1)) ((e.X2) (e.Y2)) e.Points
-  , <Compare (e.X) e.X1> : '+'
-    = <Linear (e.X) ((e.X1) (e.Y1)) ((e.X2) (e.Y2)) e.Points>;
-
-  /* x <= x1 || only two points left */
-  (e.X) ((e.X0) (e.Y0)) ((e.X1) (e.Y1)) e.Points
-    = <FFAdd
-      (e.Y0)
-      <FFMul
-        (<FFSub (e.X) e.X0>)
-        <FFDiv
-          (<FFSub (e.Y1) e.Y0>)
-          <FFSub (e.X1) e.X0>
-        >
-      >
-    >;
-}
 
 ToCanvasCenterX { e.A = <Add (e.A) 500> }
 ToCanvasCenterY { e.A = <Sub 500 e.A> }
@@ -163,8 +66,8 @@ DrawPoint {
   s.R ((e.X) (e.Y)) =
     <BeginPath>
     <Arc
-      (<ToCanvasCenterX <FFInt <CanvasScale e.X>>>)
-      (<ToCanvasCenterY <FFInt <CanvasScale e.Y>>>)
+      (<ToCanvasCenterX <FPF-ToInt <CanvasScale e.X>>>)
+      (<ToCanvasCenterY <FPF-ToInt <CanvasScale e.Y>>>)
       s.R 0 7 0
     >
     <Fill>;

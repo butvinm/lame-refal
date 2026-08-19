@@ -1,34 +1,43 @@
-# Этот Makefile упрощает работу в IntelliJ IDEA. Нужно установить плагин
-# для Makefile’ов Виктора Кроппа (просто набрать makefile в Marketplace).
-# Тогда цели этого файла будут доступны для запуска через кнопку Run
-# или комбинацию Shift-F10.
-#
-# Цели с именами на -win запускают .bat-файлы, на -posix — Bash-скрипты.
-#
-# Можно пользоваться этим Makefile и обычным образом, запуская make
-# в командной строке. Но удобнее из командной строки запускать сами скрипты
-# непосредственно.
+COMPILER := Refal-05-Standalone/bin/refal05c
+RUNTIME := runtime/lamelibc.c runtime/lamewasm.h runtime/stb_sprintf.h $(wildcard runtime/include/*.h)
+CANVAS := examples/canvas/Canvas.c examples/canvas/canvas.js
+
+LGBT_DIR := examples/canvas/lgbtqia2s+
+INTERPOLATION_DIR := examples/canvas/interpolation
+
+EXAMPLES := $(LGBT_DIR)/main.wasm $(INTERPOLATION_DIR)/main.wasm
 
 
-all:
-	echo Read Makefile for details
+.PHONY: all
+all: $(EXAMPLES)
 
 
-all-win:
-	bootstrap.bat
-
-compiler-makeself-win:
-	cd src && makeself.bat
-
-compiler-makeself-s-win:
-	cd src && makeself.bat stable
+$(COMPILER):
+	$(MAKE) -C Refal-05-Standalone bin/refal05c
 
 
-all-posix:
-	./bootstrap.sh
+$(LGBT_DIR)/main.wasm: $(LGBT_DIR)/main.ref $(CANVAS) $(RUNTIME) $(COMPILER)
+	./tools/build-wasm.sh $(LGBT_DIR) main Canvas
 
-compiler-makeself-posix:
-	cd src && ./makeself.sh
 
-compiler-makeself-s-posix:
-	cd src && ./makeself.sh stable
+$(INTERPOLATION_DIR)/main.wasm: \
+    $(INTERPOLATION_DIR)/main.ref \
+    $(INTERPOLATION_DIR)/FPF.ref \
+    $(INTERPOLATION_DIR)/Interpolation.ref \
+    $(CANVAS) $(RUNTIME) $(COMPILER)
+	./tools/build-wasm.sh $(INTERPOLATION_DIR) main FPF Interpolation Canvas LibraryEx
+
+
+.PHONY: test
+test: $(EXAMPLES)
+	node tests/smoke.mjs
+
+
+.PHONY: serve
+serve: $(EXAMPLES)
+	python3 -m http.server 8000
+
+
+.PHONY: clean
+clean:
+	rm -f $(EXAMPLES) $(LGBT_DIR)/*.c $(INTERPOLATION_DIR)/*.c

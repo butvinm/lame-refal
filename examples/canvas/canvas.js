@@ -1,19 +1,5 @@
-let canvasWasmInstance;
-
-function getString(strPtr) {
-    const memory = new Uint8Array(canvasWasmInstance.exports.memory.buffer);
-
-    let str = "";
-    let currentPtr = strPtr;
-    while (memory[currentPtr] !== 0) {
-        str += String.fromCharCode(memory[currentPtr]);
-        currentPtr++;
-    }
-    return str;
-}
-
-export function getCanvasWasmEnv(ctx) {
-    return {
+export function canvasHost(ctx) {
+    return (memory) => ({
         fillRect: ctx.fillRect.bind(ctx),
         clearRect: ctx.clearRect.bind(ctx),
         strokeRect: ctx.strokeRect.bind(ctx),
@@ -27,20 +13,24 @@ export function getCanvasWasmEnv(ctx) {
         arcTo: ctx.arcTo.bind(ctx),
         bezierCurveTo: ctx.bezierCurveTo.bind(ctx),
         quadraticCurveTo: ctx.quadraticCurveTo.bind(ctx),
+        drawImage: ctx.drawImage.bind(ctx),
+        createLinearGradient: ctx.createLinearGradient.bind(ctx),
+        createRadialGradient: ctx.createRadialGradient.bind(ctx),
+        createPattern: ctx.createPattern.bind(ctx),
         setLineWidth: (lineWidth) => {
             ctx.lineWidth = lineWidth;
         },
         setLineJoin: (lineJoin) => {
-            ctx.lineJoin = lineJoin;
+            ctx.lineJoin = memory.readCString(lineJoin);
         },
         setLineCap: (lineCap) => {
-            ctx.lineCap = getString(lineCap);
+            ctx.lineCap = memory.readCString(lineCap);
         },
         setStrokeStyle: (strokeStyle) => {
-            ctx.strokeStyle = getString(strokeStyle);
+            ctx.strokeStyle = memory.readCString(strokeStyle);
         },
         setFillStyle: (fillStyle) => {
-            ctx.fillStyle = getString(fillStyle);
+            ctx.fillStyle = memory.readCString(fillStyle);
         },
         setGlobalAlpha: (alpha) => {
             ctx.globalAlpha = alpha;
@@ -48,13 +38,5 @@ export function getCanvasWasmEnv(ctx) {
         setTransform: (a, b, c, d, e, f) => {
             ctx.setTransform(a, b, c, d, e, f);
         },
-        drawImage: ctx.drawImage.bind(ctx),
-        createLinearGradient: ctx.createLinearGradient.bind(ctx),
-        createRadialGradient: ctx.createRadialGradient.bind(ctx),
-        createPattern: ctx.createPattern.bind(ctx),
-    };
-}
-
-export function canvasPostInit(wasmInstance) {
-    canvasWasmInstance = wasmInstance;
+    });
 }

@@ -20,7 +20,7 @@ $ENTRY Lagrange {
     >;
 }
 
-Lagrange-Sum {
+$ENTRY Lagrange-Sum {
   (e.X) e.Points (s.I e.Acc) ((e.Xi) (e.Yi))
     = (
       <Inc s.I>
@@ -42,7 +42,7 @@ Li {
     >;
 }
 
-Li-Product {
+$ENTRY Li-Product {
   /* i == j => skip, j++ */
   s.I (e.X) (e.Xi)
   (s.I e.Acc) ((e.Xj) (e.Yj))

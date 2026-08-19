@@ -28,7 +28,7 @@ ParsePoints {
   e.Points = <Map (ParseRow) <Split '\n' <Trim e.Points>>>;
 }
 
-ParseRow {
+$ENTRY ParseRow {
   (e.Row) = (<Map JSFloatToFF-Bracketed <Split ';' e.Row>>);
 }
 
@@ -37,7 +37,7 @@ Split {
   s.Del e.Str = (e.Str);
 }
 
-JSFloatToFF-Bracketed {
+$ENTRY JSFloatToFF-Bracketed {
   (e.Float) = (<JSFloatToFF e.Float>);
 }
 
@@ -62,7 +62,7 @@ ToCanvasCenterX { e.A = <Add (e.A) 500> }
 ToCanvasCenterY { e.A = <Sub 500 e.A> }
 CanvasScale { e.A = <Mul (e.A) 30> }
 
-DrawPoint {
+$ENTRY DrawPoint {
   s.R ((e.X) (e.Y)) =
     <BeginPath>
     <Arc

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { loadBytes } from "../runtime/lamehost.js";
-import { canvasHost } from "../examples/canvas/canvas.js";
+import { canvasHost } from "../examples/canvas.js";
 
 const FRAMES = 5;
 
@@ -41,12 +41,12 @@ async function smoke(wasmPath, args) {
 
 const EXAMPLES = [
     {
-        wasm: "examples/canvas/lgbtqia2s+/main.wasm",
+        wasm: "examples/lgbtqia2s+/main.wasm",
         args: (frame) => [frame * 16],
         expect: (result) => result.calls.some(([name]) => name === "fillRect"),
     },
     {
-        wasm: "examples/canvas/interpolation/main.wasm",
+        wasm: "examples/interpolation/main.wasm",
         args: (frame) => [frame, "-3.24;0.8\n1.5;3.47\n5.7;8.02\n"],
         expect: (result) => result.calls.some(([name]) => name === "arc"),
     },

@@ -4,12 +4,10 @@ endif
 
 COMPILER := Refal-05-Standalone/bin/refal05c
 RUNTIME := runtime/lamelibc.c runtime/lamewasm.h runtime/stb_sprintf.h $(wildcard runtime/include/*.h)
-CANVAS := examples/canvas/Canvas.c examples/canvas/canvas.js
+SHARED := $(wildcard examples/*.c) $(wildcard examples/*.js)
 
-LGBT_DIR := examples/canvas/lgbtqia2s+
-INTERPOLATION_DIR := examples/canvas/interpolation
-
-EXAMPLES := $(LGBT_DIR)/main.wasm $(INTERPOLATION_DIR)/main.wasm
+EXAMPLE_DIRS := $(patsubst %/,%,$(dir $(wildcard examples/*/main.ref)))
+EXAMPLES := $(addsuffix /main.wasm,$(EXAMPLE_DIRS))
 
 
 .PHONY: all
@@ -20,16 +18,9 @@ $(COMPILER):
 	R05CCOMP="$${R05CCOMP:-$(CC) -Wall -g}" $(MAKE) -C Refal-05-Standalone bin/refal05c
 
 
-$(LGBT_DIR)/main.wasm: $(LGBT_DIR)/main.ref $(CANVAS) $(RUNTIME) $(COMPILER)
-	./tools/build-wasm.sh $(LGBT_DIR) main Canvas
-
-
-$(INTERPOLATION_DIR)/main.wasm: \
-    $(INTERPOLATION_DIR)/main.ref \
-    $(INTERPOLATION_DIR)/FPF.ref \
-    $(INTERPOLATION_DIR)/Interpolation.ref \
-    $(CANVAS) $(RUNTIME) $(COMPILER)
-	./tools/build-wasm.sh $(INTERPOLATION_DIR) main FPF Interpolation Canvas LibraryEx
+.SECONDEXPANSION:
+$(EXAMPLES): %/main.wasm: $$(wildcard $$*/*.ref) $(SHARED) $(RUNTIME) $(COMPILER)
+	./tools/build-wasm.sh $*
 
 
 .PHONY: test
@@ -44,4 +35,4 @@ serve: $(EXAMPLES)
 
 .PHONY: clean
 clean:
-	rm -f $(EXAMPLES) $(LGBT_DIR)/*.c $(INTERPOLATION_DIR)/*.c
+	rm -f $(EXAMPLES) $(foreach dir,$(EXAMPLE_DIRS),$(dir)/*.c)

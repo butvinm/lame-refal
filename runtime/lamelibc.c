@@ -434,7 +434,50 @@ time_t time(time_t *timer) {
   return now;
 }
 
+static const char *const s_weekdays[7] = {
+  "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
+};
+
+static const char *const s_months[12] = {
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+};
+
 char *ctime(const time_t *timer) {
-  (void) timer;
-  return "Thu Jan  1 00:00:00 1970\n";
+  static char buffer[26];
+
+  long seconds = timer != NULL ? *timer : 0;
+  long days = seconds / 86400;
+  long rest = seconds % 86400;
+  long z, era, doe, yoe, doy, mp, year;
+  int weekday, month, day;
+
+  if (rest < 0) {
+    rest += 86400;
+    days--;
+  }
+
+  weekday = (int) (((days % 7) + 11) % 7);
+
+  z = days + 719468;
+  era = (z >= 0 ? z : z - 146096) / 146097;
+  doe = z - era * 146097;
+  yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
+  year = yoe + era * 400;
+  doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+  mp = (5 * doy + 2) / 153;
+  day = (int) (doy - (153 * mp + 2) / 5 + 1);
+  month = (int) (mp + (mp < 10 ? 3 : -9));
+
+  if (month <= 2) {
+    year++;
+  }
+
+  stbsp_snprintf(
+    buffer, (int) sizeof buffer, "%s %s %2d %02d:%02d:%02d %ld\n",
+    s_weekdays[weekday], s_months[month - 1], day,
+    (int) (rest / 3600), (int) (rest / 60 % 60), (int) (rest % 60), year
+  );
+
+  return buffer;
 }

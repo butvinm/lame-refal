@@ -1,3 +1,7 @@
+ifeq ($(origin CC),default)
+CC := clang
+endif
+
 COMPILER := Refal-05-Standalone/bin/refal05c
 RUNTIME := runtime/lamelibc.c runtime/lamewasm.h runtime/stb_sprintf.h $(wildcard runtime/include/*.h)
 CANVAS := examples/canvas/Canvas.c examples/canvas/canvas.js
@@ -13,7 +17,7 @@ all: $(EXAMPLES)
 
 
 $(COMPILER):
-	$(MAKE) -C Refal-05-Standalone bin/refal05c
+	R05CCOMP="$${R05CCOMP:-$(CC) -Wall -g}" $(MAKE) -C Refal-05-Standalone bin/refal05c
 
 
 $(LGBT_DIR)/main.wasm: $(LGBT_DIR)/main.ref $(CANVAS) $(RUNTIME) $(COMPILER)

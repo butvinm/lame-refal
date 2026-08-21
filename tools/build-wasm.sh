@@ -18,15 +18,15 @@ if [ ! -e "$FRAMEWORK/lib/LibraryEx.ref" ]; then
   exit 1
 fi
 
+CC="${CC:-clang}"
+WASM_CFLAGS="${WASM_CFLAGS:--Os}"
+
 REFAL05C="${REFAL05C:-$STANDALONE/bin/refal05c}"
 
 if [ ! -x "$REFAL05C" ]; then
   echo "Собираю компилятор Рефала-05..."
-  make -C "$STANDALONE" bin/refal05c
+  R05CCOMP="${R05CCOMP:-$CC -Wall -g}" make -C "$STANDALONE" bin/refal05c
 fi
-
-CC="${CC:-clang}"
-WASM_CFLAGS="${WASM_CFLAGS:--Os}"
 
 export R05PATH="$STANDALONE/lib:$FRAMEWORK/lib:$ROOT/examples/canvas"
 export R05CCOMP="$CC --target=wasm32 -ffreestanding -nostdlibinc -nostdlib \

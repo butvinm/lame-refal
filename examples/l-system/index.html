@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>L-система - Ущербный Рефал</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="../../site/site.css" />
+    </head>
+    <body>
+        <div class="page page--wide">
+            <nav class="crumbs"><a href="../../">Все примеры</a></nav>
+
+            <header class="example-head">
+                <h1 data-title>L-система</h1>
+                <p data-summary></p>
+            </header>
+
+            <div class="demo">
+                <div class="canvas-frame">
+                    <canvas id="canvas" width="1000" height="1000"></canvas>
+                </div>
+
+                <div class="controls">
+                    <div class="control">
+                        <span class="label">Итераций</span>
+                        <div class="control__row">
+                            <input id="depth" type="range" min="1" max="6" step="1" value="4" />
+                            <strong class="control__value" id="depth-value">4</strong>
+                        </div>
+                    </div>
+
+                    <dl id="stats" class="stats"></dl>
+
+                    <p style="font-size: 0.875rem; color: var(--ink-soft); margin: 0">
+                        Две продукции переписывают строку столько раз, сколько задано ползунком.
+                        Готовое слово читает черепашка: <code>F</code> - шаг вперёд,
+                        <code>+</code> и <code>-</code> - повороты на прямой угол,
+                        <code>A</code> и <code>B</code> следа не оставляют.
+                    </p>
+                </div>
+            </div>
+
+            <div class="panels">
+                <details class="panel" open>
+                    <summary>Слово</summary>
+                    <pre id="word"></pre>
+                </details>
+
+                <details class="panel">
+                    <summary>main.ref</summary>
+                    <pre><code data-source></code></pre>
+                </details>
+            </div>
+        </div>
+
+        <script type="module">
+            import { load } from "../../runtime/lamehost.js";
+            import { canvasEnv } from "../canvas.js";
+            import { mountChrome } from "../../site/example-page.js";
+
+            const CANVAS = 1000;
+            const MARGIN = 30;
+            const WORD_PREVIEW = 600;
+
+            await mountChrome("l-system");
+
+            const canvas = document.getElementById("canvas");
+            const ctx = canvas.getContext("2d");
+            const wordView = document.getElementById("word");
+            const stats = document.getElementById("stats");
+
+            let printed = "";
+            const program = await load("./main.wasm", {
+                env: [canvasEnv(ctx)],
+                stdout: (line) => {
+                    printed += line;
+                },
+            });
+
+            const style = getComputedStyle(document.documentElement);
+            const token = (name) => style.getPropertyValue(name).trim();
+
+            function draw(depth) {
+                const side = 2 ** depth - 1;
+                const step = Math.max(1, Math.floor((CANVAS - 2 * MARGIN) / side));
+                const span = side * step;
+                const startX = Math.round((CANVAS - span) / 2);
+                const startY = startX + span;
+
+                ctx.fillStyle = token("--surface");
+                ctx.fillRect(0, 0, CANVAS, CANVAS);
+                ctx.lineJoin = "round";
+                ctx.lineCap = "round";
+
+                printed = "";
+                const code = program.run([
+                    String(depth),
+                    String(step),
+                    String(startX),
+                    String(startY),
+                    token("--accent"),
+                ]);
+
+                if (code !== 0) {
+                    wordView.textContent = `Рефал-машина завершилась с кодом ${code}`;
+                    return;
+                }
+
+                const word = printed;
+                const shown =
+                    word.length > WORD_PREVIEW
+                        ? `${word.slice(0, WORD_PREVIEW)}\n\n... и ещё ${word.length - WORD_PREVIEW} литер`
+                        : word;
+                wordView.textContent = shown;
+
+                const segments = (word.match(/F/g) ?? []).length;
+                stats.innerHTML = `
+                    <dt>Литер в слове</dt><dd>${word.length}</dd>
+                    <dt>Отрезков</dt><dd>${segments}</dd>
+                    <dt>Шаг</dt><dd>${step} px</dd>
+                `;
+            }
+
+            const depth = document.getElementById("depth");
+            const depthValue = document.getElementById("depth-value");
+
+            depth.addEventListener("input", () => {
+                depthValue.textContent = depth.value;
+                draw(Number(depth.value));
+            });
+
+            draw(Number(depth.value));
+        </script>
+    </body>
+</html>

@@ -1,0 +1,89 @@
+*$FROM Canvas
+$EXTERN BeginPath, MoveTo, LineTo, Stroke, SetStrokeStyle, SetLineWidth;
+
+/*
+  L-система: кривая Гильберта.
+
+    <Arg 0>   число итераций
+    <Arg 1>   длина шага черепашки в пикселях
+    <Arg 2>   абсцисса начала пути
+    <Arg 3>   ордината начала пути
+    <Arg 4>   цвет линии
+
+  Сначала строка переписывается по продукциям, потом черепашка читает
+  готовое слово и превращает его в ломаную. Само слово печатается
+  на стандартный вывод, чтобы страница могла его показать.
+*/
+$ENTRY Go {
+  = <Render <Grow <Numb <Arg 0>> 'A'>>;
+}
+
+StepLen { = <Numb <Arg 1>> }
+StartX  { = <Numb <Arg 2>> }
+StartY  { = <Numb <Arg 3>> }
+
+/* Продукции системы - по предложению на правило. */
+Rewrite {
+  'A' = '-BF+AFA+FB-';
+  'B' = '+AF-BFB-FA+';
+  s.Other = s.Other;
+}
+
+Grow {
+  0 e.Word = e.Word;
+  s.N e.Word = <Grow <Sub (s.N) 1> <Expand e.Word>>;
+}
+
+Expand {
+  = ;
+  s.Sym e.Rest = <Rewrite s.Sym> <Expand e.Rest>;
+}
+
+Render {
+  e.Word =
+    <Prout e.Word>
+    <SetStrokeStyle <Arg 4>>
+    <SetLineWidth 2>
+    <BeginPath>
+    <MoveTo (<StartX>) (<StartY>)>
+    <Walk 0 (<StartX>) (<StartY>) e.Word>
+    <Stroke>;
+}
+
+/*
+  Черепашка. Направление - число от 0 до 3, отсчёт по часовой стрелке
+  от направления вправо. 'F' - шаг вперёд, '+' - поворот направо,
+  '-' - налево, остальные литеры на бумаге не оставляют следа.
+*/
+Walk {
+  s.Dir (e.X) (e.Y) = ;
+
+  s.Dir (e.X) (e.Y) 'F' e.Rest =
+    <Trace s.Dir (<NextX s.Dir (e.X)>) (<NextY s.Dir (e.Y)>) e.Rest>;
+
+  s.Dir (e.X) (e.Y) '+' e.Rest = <Walk <Turn s.Dir 1> (e.X) (e.Y) e.Rest>;
+  s.Dir (e.X) (e.Y) '-' e.Rest = <Walk <Turn s.Dir 3> (e.X) (e.Y) e.Rest>;
+  s.Dir (e.X) (e.Y) s.Skip e.Rest = <Walk s.Dir (e.X) (e.Y) e.Rest>;
+}
+
+Trace {
+  s.Dir (e.X) (e.Y) e.Rest =
+    <LineTo (e.X) (e.Y)>
+    <Walk s.Dir (e.X) (e.Y) e.Rest>;
+}
+
+Turn {
+  s.Dir s.Delta = <Mod (<Add (s.Dir) s.Delta>) 4>;
+}
+
+NextX {
+  0 (e.X) = <Add (e.X) <StepLen>>;
+  2 (e.X) = <Sub (e.X) <StepLen>>;
+  s.Dir (e.X) = e.X;
+}
+
+NextY {
+  1 (e.Y) = <Add (e.Y) <StepLen>>;
+  3 (e.Y) = <Sub (e.Y) <StepLen>>;
+  s.Dir (e.Y) = e.Y;
+}

@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { loadBytes } from "../runtime/lamehost.js";
 import { canvasEnv } from "../examples/canvas.js";
+import { examples } from "../site/examples.js";
 
 const FRAMES = 5;
 
@@ -32,47 +33,36 @@ async function smoke(wasmPath, args) {
     for (let frame = 1; frame <= FRAMES; frame++) {
         const code = program.run(args(frame));
         if (code !== 0) {
-            throw new Error(`${wasmPath}: frame ${frame} exited with ${code}`);
+            throw new Error(`кадр ${frame} завершился с кодом ${code}`);
         }
     }
 
     return { calls, output, pages: program.pages };
 }
 
-const EXAMPLES = [
-    {
-        wasm: "examples/lgbtqia2s+/main.wasm",
-        args: (frame) => [frame * 16],
-        expect: (result) => result.calls.some(([name]) => name === "fillRect"),
-    },
-    {
-        wasm: "examples/interpolation/main.wasm",
-        args: (frame) => [frame, "-3.24;0.8\n1.5;3.47\n5.7;8.02\n"],
-        expect: (result) => result.calls.some(([name]) => name === "arc"),
-    },
-];
-
 let failed = 0;
 
-for (const example of EXAMPLES) {
-    const wasmPath = path.resolve(import.meta.dirname, "..", example.wasm);
+for (const example of examples) {
+    const relative = path.join("examples", example.slug, "main.wasm");
+    const wasmPath = path.resolve(import.meta.dirname, "..", relative);
 
     if (!fs.existsSync(wasmPath)) {
-        console.log(`SKIP ${example.wasm} (not built)`);
+        console.log(`SKIP ${relative} (не собран)`);
         continue;
     }
 
     try {
-        const result = await smoke(wasmPath, example.args);
-        if (!example.expect(result)) {
-            throw new Error("expected drawing calls were not made");
+        const result = await smoke(wasmPath, example.smoke.args);
+        const expected = example.smoke.expects;
+        if (!result.calls.some(([name]) => name === expected)) {
+            throw new Error(`нет ни одного вызова ${expected}`);
         }
         console.log(
-            `OK   ${example.wasm}: ${FRAMES} frames, ${result.calls.length} canvas calls, ${result.pages} pages`,
+            `OK   ${relative}: ${FRAMES} кадров, ${result.calls.length} вызовов canvas, ${result.pages} страниц`,
         );
     } catch (error) {
         failed++;
-        console.error(`FAIL ${example.wasm}: ${error.message}`);
+        console.error(`FAIL ${relative}: ${error.message}`);
     }
 }
 

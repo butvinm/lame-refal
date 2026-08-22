@@ -1,19 +1,138 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>WASM Test</title>
+        <title>Ущербный Рефал</title>
+        <meta
+            name="description"
+            content="Компиляция программ на Рефале-05 в WebAssembly и примеры браузерных приложений на нём."
+        />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="site/site.css" />
     </head>
     <body>
-        <h1>Refal in WASM examples</h1>
-        <ul>
-            <li>
-                <a href="./examples/lgbtqia2s+">lgbtqia2s+</a>
-            </li>
-            <li>
-                <a href="./examples/interpolation">interpolation</a>
-            </li>
-        </ul>
+        <div class="page">
+            <header class="hero">
+                <h1 class="title">Ущербный Рефал</h1>
+                <p class="hero__lead">
+                    Рефал-05 компилируется в WebAssembly и запускается в браузере. Рефал-машина
+                    считает, страница рисует.
+                </p>
+
+                <blockquote class="hero__epigraph">
+                    Потому что Рефал без поддержки перфокарт - это ущербный Рефал.
+                    <cite>@Mazdaywik</cite>
+                </blockquote>
+            </header>
+
+            <section class="section">
+                <h2>Как это выглядит</h2>
+                <p>
+                    Правило клеточного автомата целиком: слева образец, справа результат.
+                    Компилятор Рефала-05 переводит такие предложения в C, clang собирает C
+                    в WebAssembly, а страница вызывает готовый модуль как обычную функцию.
+                </p>
+                <pre><code>Rule {
+  '111' = '0';
+  '110' = '1';
+  '101' = '1';
+  '100' = '0';
+  '011' = '1';
+  '010' = '1';
+  '001' = '1';
+  '000' = '0';
+}</code></pre>
+            </section>
+
+            <section class="section">
+                <h2>Примеры</h2>
+                <ul class="cards" id="cards"></ul>
+            </section>
+
+            <section class="section">
+                <h2>Как это устроено</h2>
+                <p>
+                    Рефал-05 генерирует из программы код на C. Тот собирается под
+                    <code>wasm32</code> без системной библиотеки: заголовки из
+                    <code>runtime/include</code> подменяют системные, а недостающие функции
+                    дописаны в <code>runtime/lamelibc.c</code> и частью уходят обратно в JS.
+                </p>
+                <p>
+                    Куча растёт через <code>memory.grow</code>, а <code>free</code> ничего
+                    не делает: память освобождается целиком между запусками. Поэтому
+                    рефал-машина не помнит ничего от вызова к вызову - состояние живёт на
+                    стороне страницы и ходит туда-обратно через аргументы и стандартный вывод.
+                </p>
+                <p>
+                    Файлов на диске нет, так что часть встроенных функций ведёт себя не так,
+                    как на обычной машине. Подробности - в
+                    <a href="https://github.com/butvinm/lame-refal#readme">README</a>.
+                </p>
+            </section>
+
+            <section class="section">
+                <h2>Собрать у себя</h2>
+                <pre><code>git clone --recurse-submodules https://github.com/butvinm/lame-refal
+cd lame-refal
+make
+make serve</code></pre>
+                <p>
+                    Нужны <code>make</code>, <code>clang</code> с <code>wasm-ld</code> и
+                    <code>node</code> для тестов. Первый <code>make</code> собирает
+                    компилятор Рефала-05, последующие - только примеры.
+                </p>
+            </section>
+
+            <footer class="footer">
+                <p>
+                    <a href="https://github.com/butvinm/lame-refal">Репозиторий</a> &middot;
+                    <a href="https://github.com/Mazdaywik/Refal-05">Рефал-05</a> &middot;
+                    <a href="https://github.com/butvinm/Refal-05-Standalone">Refal-05-Standalone</a>
+                </p>
+            </footer>
+        </div>
+
+        <script type="module">
+            import { examples, exampleHref } from "./site/examples.js";
+
+            const cards = document.getElementById("cards");
+
+            cards.append(
+                ...examples.map((example) => {
+                    const item = document.createElement("li");
+                    const link = document.createElement("a");
+                    link.className = "card";
+                    link.href = exampleHref(example);
+
+                    const title = document.createElement("span");
+                    title.className = "card__title";
+                    title.textContent = example.title;
+
+                    const summary = document.createElement("p");
+                    summary.className = "card__summary";
+                    summary.textContent = example.summary;
+
+                    const shows = document.createElement("ul");
+                    shows.className = "card__shows";
+                    shows.append(
+                        ...example.shows.map((tag) => {
+                            const chip = document.createElement("li");
+                            chip.textContent = tag;
+                            return chip;
+                        }),
+                    );
+
+                    link.append(title, summary, shows);
+                    item.append(link);
+                    return item;
+                }),
+            );
+        </script>
     </body>
 </html>

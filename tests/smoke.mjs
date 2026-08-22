@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { loadBytes } from "../runtime/lamehost.js";
-import { canvasHost } from "../examples/canvas.js";
+import { canvasEnv } from "../examples/canvas.js";
 
 const FRAMES = 5;
 
@@ -24,7 +24,7 @@ async function smoke(wasmPath, args) {
     const calls = [];
     const output = [];
     const program = await loadBytes(fs.readFileSync(wasmPath), {
-        hosts: [canvasHost(recordingContext(calls))],
+        env: [canvasEnv(recordingContext(calls))],
         stdout: (line) => output.push(line),
         stderr: (line) => output.push(line),
     });

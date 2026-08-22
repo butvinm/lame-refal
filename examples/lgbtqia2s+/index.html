@@ -13,10 +13,10 @@
 
         <script type="module">
             import { load } from "../../runtime/lamehost.js";
-            import { canvasHost } from "../canvas.js";
+            import { canvasEnv } from "../canvas.js";
 
             const ctx = document.getElementById("wasmCanvas").getContext("2d");
-            const program = await load("./main.wasm", { hosts: [canvasHost(ctx)] });
+            const program = await load("./main.wasm", { env: [canvasEnv(ctx)] });
 
             let stop = false;
 

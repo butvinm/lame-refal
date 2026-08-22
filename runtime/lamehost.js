@@ -148,29 +148,31 @@ export class LameProgram {
     }
 }
 
-export async function load(url, { hosts = [], stdout, stderr, stdin } = {}) {
-    const memory = new LameMemory();
-    const env = Object.assign(
-        {},
-        ...hosts.map((host) => host(memory)),
-        lameEnv(memory, { stdout, stderr, stdin }),
-    );
+function importObject(memory, { env, stdout, stderr, stdin }) {
+    return {
+        env: Object.assign(
+            {},
+            ...env.map((part) => part(memory)),
+            lameEnv(memory, { stdout, stderr, stdin }),
+        ),
+    };
+}
 
-    const { instance } = await WebAssembly.instantiateStreaming(fetch(url), { env });
+export async function load(url, { env = [], stdout, stderr, stdin } = {}) {
+    const memory = new LameMemory();
+    const imports = importObject(memory, { env, stdout, stderr, stdin });
+
+    const { instance } = await WebAssembly.instantiateStreaming(fetch(url), imports);
     memory.bind(instance);
 
     return new LameProgram(instance, memory);
 }
 
-export async function loadBytes(bytes, { hosts = [], stdout, stderr, stdin } = {}) {
+export async function loadBytes(bytes, { env = [], stdout, stderr, stdin } = {}) {
     const memory = new LameMemory();
-    const env = Object.assign(
-        {},
-        ...hosts.map((host) => host(memory)),
-        lameEnv(memory, { stdout, stderr, stdin }),
-    );
+    const imports = importObject(memory, { env, stdout, stderr, stdin });
 
-    const { instance } = await WebAssembly.instantiate(bytes, { env });
+    const { instance } = await WebAssembly.instantiate(bytes, imports);
     memory.bind(instance);
 
     return new LameProgram(instance, memory);

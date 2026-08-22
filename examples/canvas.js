@@ -1,4 +1,4 @@
-export function canvasHost(ctx) {
+export function canvasEnv(ctx) {
     return (memory) => ({
         fillRect: ctx.fillRect.bind(ctx),
         clearRect: ctx.clearRect.bind(ctx),

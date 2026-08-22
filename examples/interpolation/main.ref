@@ -15,10 +15,16 @@ $EXTERN FPF-ToInt;
 $EXTERN Linear;
 $EXTERN Lagrange;
 
+/*
+    <Arg 0>   абсцисса, в которой считаем значения
+    <Arg 1>   узлы, по строке "x;y" на каждый
+    <Arg 2>   цвет узлов
+    <Arg 3>   цвет многочлена Лагранжа
+    <Arg 4>   цвет ломаной
+*/
 $ENTRY Go {
   =
     <Next
-      /* (0) */
       (<JSFloatToFF <Arg 0>>)
       <ParsePoints <Arg 1>>
     >;
@@ -49,11 +55,14 @@ JSFloatToFF {
 }
 
 
+NodeRadius { = 9 }
+TraceRadius { = 4 }
+
 Next {
   (e.X) e.Points =
-    <SetFillStyle 'rgb(0 0 0)'> <Map (DrawPoint 2) e.Points>
-    <SetFillStyle 'rgb(255 0 0)'> <DrawPoint 1 ((e.X) (<Lagrange (e.X) e.Points>))>
-    <SetFillStyle 'rgb(0 0 255)'> <DrawPoint 1 ((e.X) (<Linear (e.X) e.Points>))>;
+    <SetFillStyle <Arg 2>> <Map (DrawPoint <NodeRadius>) e.Points>
+    <SetFillStyle <Arg 3>> <DrawPoint <TraceRadius> ((e.X) (<Lagrange (e.X) e.Points>))>
+    <SetFillStyle <Arg 4>> <DrawPoint <TraceRadius> ((e.X) (<Linear (e.X) e.Points>))>;
 }
 
 

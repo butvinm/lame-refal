@@ -246,41 +246,41 @@ R05_DEFINE_ENTRY_FUNCTION(ClosePath, "ClosePath") {
   closePath();
 }
 
-// R05_DEFINE_ENTRY_FUNCTION(MoveTo, "MoveTo") {
-//   struct signed_number x, y;
+R05_DEFINE_ENTRY_FUNCTION(MoveTo, "MoveTo") {
+  struct signed_number x, y;
 
-//   struct r05_node *func_name, *p;
+  struct r05_node *func_name, *p;
 
-//   func_name = arg_begin->next;
-//   p = func_name->next;
+  func_name = arg_begin->next;
+  p = func_name->next;
 
-//   p = parse_signed_number(&x, p);
-//   p = parse_signed_number(&y, p);
+  p = parse_maybe_bracket_signed_number(&x, p);
+  p = parse_maybe_bracket_signed_number(&y, p);
 
-//   if (p != arg_end) {
-//     r05_recognition_impossible();
-//   }
+  if (p != arg_end) {
+    r05_recognition_impossible();
+  }
 
-//   moveTo(x.sign*x.value, y.sign*y.value);
-// }
+  moveTo(x.sign*x.value, y.sign*y.value);
+}
 
-// R05_DEFINE_ENTRY_FUNCTION(LineTo, "LineTo") {
-//   struct signed_number x, y;
+R05_DEFINE_ENTRY_FUNCTION(LineTo, "LineTo") {
+  struct signed_number x, y;
 
-//   struct r05_node *func_name, *p;
+  struct r05_node *func_name, *p;
 
-//   func_name = arg_begin->next;
-//   p = func_name->next;
+  func_name = arg_begin->next;
+  p = func_name->next;
 
-//   p = parse_signed_number(&x, p);
-//   p = parse_signed_number(&y, p);
+  p = parse_maybe_bracket_signed_number(&x, p);
+  p = parse_maybe_bracket_signed_number(&y, p);
 
-//   if (p != arg_end) {
-//     r05_recognition_impossible();
-//   }
+  if (p != arg_end) {
+    r05_recognition_impossible();
+  }
 
-//   lineTo(x.sign*x.value, y.sign*y.value);
-// }
+  lineTo(x.sign*x.value, y.sign*y.value);
+}
 
 R05_DEFINE_ENTRY_FUNCTION(Stroke, "Stroke") {
   struct r05_node *func_name, *p;
@@ -418,22 +418,22 @@ R05_DEFINE_ENTRY_FUNCTION(Arc, "Arc") {
 //   );
 // }
 
-// R05_DEFINE_ENTRY_FUNCTION(SetLineWidth, "SetLineWidth") {
-//   struct signed_number width;
+R05_DEFINE_ENTRY_FUNCTION(SetLineWidth, "SetLineWidth") {
+  struct signed_number width;
 
-//   struct r05_node *func_name, *p;
+  struct r05_node *func_name, *p;
 
-//   func_name = arg_begin->next;
-//   p = func_name->next;
+  func_name = arg_begin->next;
+  p = func_name->next;
 
-//   p = parse_signed_number(&width, p);
+  p = parse_maybe_bracket_signed_number(&width, p);
 
-//   if (p != arg_end) {
-//     r05_recognition_impossible();
-//   }
+  if (p != arg_end) {
+    r05_recognition_impossible();
+  }
 
-//   setLineWidth(width.sign*width.value);
-// }
+  setLineWidth(width.sign*width.value);
+}
 
 // R05_DEFINE_ENTRY_FUNCTION(SetLineJoin, "SetLineJoin") {
 //   struct r05_node *func_name, *p;
@@ -477,26 +477,27 @@ R05_DEFINE_ENTRY_FUNCTION(Arc, "Arc") {
 //   setLineCap(capStyle);
 // }
 
-// R05_DEFINE_ENTRY_FUNCTION(SetStrokeStyle, "SetStrokeStyle") {
-//   struct r05_node *func_name, *p;
-//   const char* color;
+R05_DEFINE_ENTRY_FUNCTION(SetStrokeStyle, "SetStrokeStyle") {
+  struct r05_node *eColor[2];
+  enum { MAX_COLOR = 100 };
+  char color[MAX_COLOR + 1];
+  size_t color_len;
 
-//   func_name = arg_begin->next;
-//   p = func_name->next;
+  color_len =
+    r05_read_chars(eColor, color, MAX_COLOR, arg_begin->next, arg_end);
 
-//   if (R05_DATATAG_STRING != p->tag) {
-//     r05_recognition_impossible();
-//   }
+  if (!r05_empty_hole(eColor[1], arg_end)) {
+    if (R05_DATATAG_CHAR == eColor[1]->next->tag) {
+      r05_builtin_error("stroke style color too long");
+    } else {
+      r05_recognition_impossible();
+    }
+  }
 
-//   color = p->info.string;
-//   p = p->next;
+  color[color_len] = '\0';
 
-//   if (p != arg_end) {
-//     r05_recognition_impossible();
-//   }
-
-//   setStrokeStyle(color);
-// }
+  setStrokeStyle(color);
+}
 
 R05_DEFINE_ENTRY_FUNCTION(SetFillStyle, "SetFillStyle") {
   struct r05_node *eColor[2];

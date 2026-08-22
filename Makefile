@@ -20,7 +20,7 @@ $(COMPILER):
 
 .SECONDEXPANSION:
 $(EXAMPLES): %/main.wasm: $$(wildcard $$*/*.ref) $(SHARED) $(RUNTIME) $(COMPILER)
-	./tools/build-wasm.sh $*
+	SHARED_DIR=examples ./tools/build-wasm.sh $*
 
 
 .PHONY: test

@@ -41,8 +41,7 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
-/* Фокус показываем самой рамкой: она синеет и утолщается,
-   отдельного кольца снаружи нет. */
+/* Фокус показываем цветом самой рамки, без кольца и без утолщения. */
 :focus-visible {
     outline: none;
 }
@@ -50,7 +49,6 @@ body {
 button:focus-visible,
 .line:focus-visible {
     border-color: var(--accent);
-    box-shadow: 0 0 0 1px var(--accent);
 }
 
 .source > summary:focus-visible {

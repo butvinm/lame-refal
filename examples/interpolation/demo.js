@@ -73,17 +73,9 @@ export async function setup({ canvas, controls, token }) {
     let running = false;
     let origin = 0;
 
-    function frame(timestamp) {
-        if (!running) return;
-
-        const progress = (timestamp - origin) / SWEEP_MS;
-        if (progress > 1) {
-            running = false;
-            return;
-        }
-
+    function runAt(x) {
         const code = program.run([
-            (LOWER + progress * (UPPER - LOWER)).toFixed(3),
+            x.toFixed(3),
             points.join("\n"),
             token("--ink"),
             token("--series-1"),
@@ -92,6 +84,17 @@ export async function setup({ canvas, controls, token }) {
 
         if (code !== 0) {
             console.error(`Интерполяция: рефал-машина завершилась с кодом ${code}`);
+            return false;
+        }
+
+        return true;
+    }
+
+    function frame(timestamp) {
+        if (!running) return;
+
+        const progress = (timestamp - origin) / SWEEP_MS;
+        if (progress > 1 || !runAt(LOWER + progress * (UPPER - LOWER))) {
             running = false;
             return;
         }
@@ -100,9 +103,13 @@ export async function setup({ canvas, controls, token }) {
     }
 
     function start() {
+        running = false;
         drawGrid();
+        if (points.length === 0) return;
+
+        /* Кривые начинаются с двух узлов, один узел просто показываем. */
         if (points.length < 2) {
-            running = false;
+            runAt(LOWER);
             return;
         }
 

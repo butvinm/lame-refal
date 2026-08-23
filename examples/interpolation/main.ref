@@ -58,11 +58,20 @@ JSFloatToFF {
 NodeRadius { = 9 }
 TraceRadius { = 4 }
 
+/* Обе кривые требуют хотя бы двух узлов, один узел просто показываем. */
 Next {
-  (e.X) e.Points =
-    <SetFillStyle <Arg 2>> <Map (DrawPoint <NodeRadius>) e.Points>
-    <SetFillStyle <Arg 3>> <DrawPoint <TraceRadius> ((e.X) (<Lagrange (e.X) e.Points>))>
-    <SetFillStyle <Arg 4>> <DrawPoint <TraceRadius> ((e.X) (<Linear (e.X) e.Points>))>;
+  (e.X) t.First t.Second e.Rest =
+    <DrawNodes t.First t.Second e.Rest>
+    <SetFillStyle <Arg 3>>
+    <DrawPoint <TraceRadius> ((e.X) (<Lagrange (e.X) t.First t.Second e.Rest>))>
+    <SetFillStyle <Arg 4>>
+    <DrawPoint <TraceRadius> ((e.X) (<Linear (e.X) t.First t.Second e.Rest>))>;
+
+  (e.X) e.Points = <DrawNodes e.Points>;
+}
+
+DrawNodes {
+  e.Points = <SetFillStyle <Arg 2>> <Map (DrawPoint <NodeRadius>) e.Points>;
 }
 
 

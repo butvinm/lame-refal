@@ -6,7 +6,7 @@ const CELLS = 200;
 const ROWS = 200;
 const DEFAULT_SEED = "1";
 
-/** Затравка любой длины укладывается в середину ленты, остальное - нули. */
+/** Из затравки берутся только 0 и 1; результат обрезается и помещается в середину ленты. */
 function tapeFromSeed(seed) {
     const cells = [...seed].filter((cell) => cell === "0" || cell === "1").join("");
     const body = (cells === "" ? DEFAULT_SEED : cells).slice(0, CELLS);

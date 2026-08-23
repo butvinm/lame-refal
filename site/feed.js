@@ -1,5 +1,3 @@
-/** Лента примеров: заголовок, холст с управлением и текст программы. */
-
 import { examples } from "./examples.js";
 
 const rootStyle = getComputedStyle(document.documentElement);
@@ -17,7 +15,7 @@ function escapeHtml(text) {
 const REFAL_TOKENS =
     /(\/\*[\s\S]*?\*\/|^\*.*$)|('(?:[^'\n])*')|(\$[A-Z]+)|(&lt;\s*[A-Za-z][\w-]*)/gm;
 
-/** Грубая подсветка Рефала: комментарии, литеры, директивы, вызовы. */
+/** Упрощённая подсветка Рефала: комментарии, литеры, директивы и вызовы. */
 function highlightRefal(source) {
     return escapeHtml(source).replace(
         REFAL_TOKENS,

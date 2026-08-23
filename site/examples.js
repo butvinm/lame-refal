@@ -5,7 +5,6 @@
 
 const CELLS = 200;
 
-/** Начальное поколение клеточного автомата: одна живая клетка посередине. */
 export function initialGeneration(cells = CELLS) {
     const middle = Math.floor(cells / 2);
     return Array.from({ length: cells }, (_, i) => (i === middle ? "1" : "0")).join("");

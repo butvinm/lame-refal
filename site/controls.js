@@ -1,4 +1,4 @@
-/** Мелкие элементы управления, из которых примеры собирают свои панели. */
+/** Общие элементы управления для панелей примеров. */
 
 function make(tag, className, text) {
     const node = document.createElement(tag);
@@ -14,7 +14,7 @@ export function button(label, onClick, { primary = false } = {}) {
     return node;
 }
 
-/** Однострочное поле. Подпись невидима, её читает только программа чтения с экрана. */
+/** Однострочное поле. Невидимую подпись озвучивает программа экранного доступа. */
 export function line(label, { value = "", placeholder = "" } = {}) {
     const input = make("input", "line");
     Object.assign(input, { type: "text", value, placeholder, spellcheck: false });
@@ -22,7 +22,6 @@ export function line(label, { value = "", placeholder = "" } = {}) {
     return input;
 }
 
-/** Легенда графика: кружок цвета плюс подпись ряда. */
 export function legend(items) {
     const list = make("ul", "legend");
     list.append(

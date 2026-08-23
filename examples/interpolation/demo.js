@@ -2,7 +2,7 @@ import { load } from "../../runtime/lamehost.js";
 import { canvasEnv } from "../canvas.js";
 import { button, legend } from "../../site/controls.js";
 
-/* Те же числа, что и в main.ref: центр холста и пикселей на единицу. */
+/* Те же значения, что и в main.ref: координата центра и число пикселей на единицу. */
 const CENTER = 500;
 const SCALE = 50;
 const SWEEP_MS = 6000;
@@ -73,7 +73,7 @@ export async function setup({ canvas, controls, token }) {
     let origin = null;
     let drawn = LOWER;
 
-    /* Программа рисует кусок кривой от x0 до x1, поэтому левый конец ведёт страница. */
+    /* Программа рисует участок кривой от x0 до x1; координаты задаёт страница. */
     function runSegment(x0, x1) {
         const code = program.run([
             x0.toFixed(3),
@@ -112,9 +112,9 @@ export async function setup({ canvas, controls, token }) {
     }
 
     /*
-      Назначенный кадр надо снять, а не просто пометить проход законченным:
-      иначе он успевает сработать уже с новым левым концом и старым началом
-      отсчёта, и вместо кривой выходит один отрезок через весь холст.
+      Запланированный кадр нужно отменить, а не только сбросить frame:
+      иначе обработчик выполнится с новым левым концом и прежним началом
+      отсчёта, поэтому вместо кривой получится отрезок через весь холст.
     */
     function stop() {
         if (frame !== null) window.cancelAnimationFrame(frame);
@@ -126,7 +126,7 @@ export async function setup({ canvas, controls, token }) {
         drawGrid();
         if (points.length === 0) return;
 
-        /* Кривые начинаются с двух узлов, один узел просто показываем. */
+        /* Для построения кривых нужны два узла; иначе показываем только узел. */
         if (points.length < 2) {
             runSegment(LOWER, LOWER);
             return;

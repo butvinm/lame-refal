@@ -9,7 +9,7 @@ const MAX_DEPTH = 6;
 const STEP_MS = 650;
 const SPROUTS = 4;
 
-/** Лента цифр, по одной на итерацию: с неё и начинается новое растение. */
+/** Случайная последовательность правил, по одному для каждого уровня роста. */
 function seed() {
     return Array.from({ length: MAX_DEPTH }, () =>
         Math.floor(Math.random() * SPROUTS),
@@ -69,7 +69,7 @@ export async function setup({ canvas, controls, token }) {
         token("--leaf"),
     ];
 
-    /** Куда и с каким увеличением поместить растение, чтобы оно село на холст. */
+    /** Положение и масштаб, при которых растение помещается на холсте. */
     function fit(digits) {
         const box = scout.measure(() => measuring.run(args(MAX_DEPTH, digits)));
         if (box === null) return null;
@@ -107,7 +107,7 @@ export async function setup({ canvas, controls, token }) {
     const slowly = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let frame = null;
 
-    /* Растение мерим на полном росте, поэтому оно поднимается в кадре, а не топчется. */
+    /* Габариты вычисляются для взрослого растения, поэтому его основание не смещается. */
     function plant() {
         if (frame !== null) window.cancelAnimationFrame(frame);
         frame = null;

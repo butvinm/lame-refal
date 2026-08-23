@@ -1,11 +1,13 @@
 import { load } from "../../runtime/lamehost.js";
 import { canvasEnv } from "../canvas.js";
-import { slider } from "../../site/controls.js";
 
 const CANVAS = 1000;
 const MARGIN = 30;
+const MAX_DEPTH = 6;
+const STEP_MS = 700;
+const HOLD_MS = 2400;
 
-export async function setup({ canvas, controls, token }) {
+export async function setup({ canvas, token }) {
     const ctx = canvas.getContext("2d");
 
     const program = await load(new URL("./main.wasm", import.meta.url), {
@@ -34,11 +36,33 @@ export async function setup({ canvas, controls, token }) {
 
         if (code !== 0) {
             console.error(`L-система: рефал-машина завершилась с кодом ${code}`);
+            return false;
         }
+
+        return true;
     }
 
-    const depth = slider("Итераций", { min: 1, max: 6, value: 4 }, draw);
-    controls.append(depth.element);
+    /* Кому анимация мешает, тот сразу видит готовую кривую. */
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        draw(MAX_DEPTH);
+        return;
+    }
 
-    draw(Number(depth.input.value));
+    let depth = 1;
+    let shown = null;
+
+    function tick(timestamp) {
+        if (shown === null) shown = timestamp;
+
+        const wait = depth === MAX_DEPTH ? HOLD_MS : STEP_MS;
+        if (timestamp - shown >= wait) {
+            depth = depth === MAX_DEPTH ? 1 : depth + 1;
+            if (!draw(depth)) return;
+            shown = timestamp;
+        }
+
+        window.requestAnimationFrame(tick);
+    }
+
+    if (draw(depth)) window.requestAnimationFrame(tick);
 }

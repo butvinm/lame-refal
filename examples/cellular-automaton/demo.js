@@ -1,10 +1,18 @@
 import { load } from "../../runtime/lamehost.js";
 import { canvasEnv } from "../canvas.js";
-import { initialGeneration } from "../../site/examples.js";
-import { button, buttons, slider } from "../../site/controls.js";
+import { button, line } from "../../site/controls.js";
 
 const CELLS = 200;
 const ROWS = 200;
+const DEFAULT_SEED = "1";
+
+/** Затравка любой длины укладывается в середину ленты, остальное - нули. */
+function tapeFromSeed(seed) {
+    const cells = [...seed].filter((cell) => cell === "0" || cell === "1").join("");
+    const body = (cells === "" ? DEFAULT_SEED : cells).slice(0, CELLS);
+    const left = Math.floor((CELLS - body.length) / 2);
+    return "0".repeat(left) + body + "0".repeat(CELLS - left - body.length);
+}
 
 export async function setup({ canvas, controls, token }) {
     const ctx = canvas.getContext("2d");
@@ -12,64 +20,43 @@ export async function setup({ canvas, controls, token }) {
     let printed = "";
     const program = await load(new URL("./main.wasm", import.meta.url), {
         env: [canvasEnv(ctx)],
-        stdout: (line) => {
-            printed += line;
+        stdout: (text) => {
+            printed += text;
         },
     });
 
-    let generation = initialGeneration(CELLS);
+    let generation = tapeFromSeed(DEFAULT_SEED);
     let row = 0;
-    let perFrame = 2;
-    let paused = false;
     let frame = null;
 
-    function stepOnce() {
+    function tick() {
         printed = "";
         const code = program.run([generation, String(row), token("--ink")]);
         if (code !== 0) {
             console.error(`Клеточный автомат: рефал-машина завершилась с кодом ${code}`);
-            return false;
+            return;
         }
+
         generation = printed;
         row += 1;
-        return true;
-    }
-
-    function tick() {
-        if (paused) return;
-
-        for (let i = 0; i < perFrame && row < ROWS; i++) {
-            if (!stepOnce()) return;
-        }
-
         frame = row < ROWS ? window.requestAnimationFrame(tick) : null;
     }
 
-    function restart() {
+    function start() {
         if (frame !== null) window.cancelAnimationFrame(frame);
-        generation = initialGeneration(CELLS);
+        generation = tapeFromSeed(seed.value);
         row = 0;
-        paused = false;
-        pause.textContent = "Пауза";
         ctx.fillStyle = token("--surface");
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         frame = window.requestAnimationFrame(tick);
     }
 
-    const pause = button("Пауза", () => {
-        paused = !paused;
-        pause.textContent = paused ? "Продолжить" : "Пауза";
-        if (!paused) frame = window.requestAnimationFrame(tick);
+    const seed = line("Начальная лента", { value: DEFAULT_SEED, placeholder: "1101" });
+    seed.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") start();
     });
 
-    const speed = slider("Строк за кадр", { min: 1, max: 8, value: perFrame }, (value) => {
-        perFrame = value;
-    });
+    controls.append(seed, button("Запустить", start, { primary: true }));
 
-    controls.append(
-        buttons(button("Заново", restart, { primary: true }), pause),
-        speed.element,
-    );
-
-    restart();
+    start();
 }

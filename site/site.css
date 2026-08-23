@@ -61,7 +61,7 @@ body {
 }
 
 .page {
-    max-width: 60rem;
+    max-width: 46rem;
     margin: 0 auto;
 }
 
@@ -114,14 +114,7 @@ body {
 
 .example__demo {
     display: grid;
-    gap: 1.25rem;
-    align-items: start;
-}
-
-@media (min-width: 52rem) {
-    .example__demo {
-        grid-template-columns: minmax(0, 1fr) 15rem;
-    }
+    gap: 1rem;
 }
 
 /* Холст */
@@ -140,51 +133,17 @@ body {
     border-radius: 2px;
 }
 
-/* Управление */
+/* Управление: одна строка под холстом */
 
 .controls {
     display: flex;
-    flex-direction: column;
-    gap: 1.15rem;
-}
-
-.control {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-}
-
-.label {
-    font-family: var(--mono);
-    font-size: 0.75rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--ink-faint);
-}
-
-.control__row {
-    display: flex;
-    align-items: center;
-    gap: 0.65rem;
-}
-
-.control__row input[type="range"] {
-    flex: 1;
-    min-width: 0;
-    accent-color: var(--accent);
-}
-
-.control__value {
-    font-family: var(--mono);
-    font-size: 0.875rem;
-    min-width: 2.75rem;
-    text-align: right;
-}
-
-.buttons {
-    display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.controls:empty {
+    display: none;
 }
 
 button {
@@ -213,28 +172,28 @@ button.primary:hover {
     filter: brightness(1.08);
 }
 
-textarea {
+.line {
+    flex: 1;
+    min-width: 8rem;
     font-family: var(--mono);
-    font-size: 0.8125rem;
-    line-height: 1.5;
-    padding: 0.55rem 0.65rem;
+    font-size: 0.875rem;
+    padding: 0.4rem 0.65rem;
     border: 1px solid var(--rule);
     border-radius: 3px;
     background: var(--surface);
     color: var(--ink);
-    resize: vertical;
 }
 
 /* Легенда графика */
 
 .legend {
     display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    margin: 0;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.9rem;
+    margin: 0 0 0 auto;
     padding: 0;
     list-style: none;
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
 }
 
 .legend li {

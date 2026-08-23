@@ -14,40 +14,12 @@ export function button(label, onClick, { primary = false } = {}) {
     return node;
 }
 
-export function buttons(...nodes) {
-    const row = make("div", "buttons");
-    row.append(...nodes);
-    return row;
-}
-
-/** Ползунок с подписью и текущим значением справа. */
-export function slider(label, { min, max, step = 1, value }, onInput) {
-    const control = make("div", "control");
-    const input = make("input");
-    Object.assign(input, { type: "range", min, max, step, value });
-
-    const view = make("strong", "control__value", String(value));
-    const row = make("div", "control__row");
-    row.append(input, view);
-
-    control.append(make("span", "label", label), row);
-
-    input.addEventListener("input", () => {
-        view.textContent = input.value;
-        onInput(Number(input.value));
-    });
-
-    return { element: control, input };
-}
-
-/** Многострочное поле с подписью. */
-export function field(label, { value = "", rows = 6 } = {}) {
-    const control = make("div", "control");
-    const input = make("textarea");
-    Object.assign(input, { rows, value, spellcheck: false });
-
-    control.append(make("span", "label", label), input);
-    return { element: control, input };
+/** Однострочное поле. Подпись невидима, её читает только программа чтения с экрана. */
+export function line(label, { value = "", placeholder = "" } = {}) {
+    const input = make("input", "line");
+    Object.assign(input, { type: "text", value, placeholder, spellcheck: false });
+    input.setAttribute("aria-label", label);
+    return input;
 }
 
 /** Легенда графика: кружок цвета плюс подпись ряда. */

@@ -1,13 +1,15 @@
 import { load } from "../../runtime/lamehost.js";
 import { canvasEnv } from "../canvas.js";
-import { button, buttons, field, legend, slider } from "../../site/controls.js";
+import { button, legend } from "../../site/controls.js";
 
 /* Те же числа, что и в main.ref: центр холста и пикселей на единицу. */
 const CENTER = 500;
 const SCALE = 30;
 const SWEEP_MS = 6000;
+const LOWER = -5;
+const UPPER = 10;
 
-const DEFAULT_POINTS = ["-3.24;0.8", "-0.88;3.77", "1.5;3.47", "5.7;8.02", "7.52;9.75"].join("\n");
+const DEFAULT_POINTS = ["-3.24;0.8", "-0.88;3.77", "1.5;3.47", "5.7;8.02", "7.52;9.75"];
 
 const toCanvasX = (x) => CENTER + SCALE * x;
 const toCanvasY = (y) => CENTER - SCALE * y;
@@ -66,17 +68,7 @@ export async function setup({ canvas, controls, token }) {
         }
     }
 
-    const points = field("Узлы", { value: DEFAULT_POINTS, rows: 6 });
-
-    function readPoints() {
-        return points.input.value
-            .split("\n")
-            .map((line) => line.trim())
-            .filter((line) => line !== "");
-    }
-
-    let lower = -5;
-    let upper = 10;
+    let points = [...DEFAULT_POINTS];
     let running = false;
     let origin = 0;
 
@@ -90,8 +82,8 @@ export async function setup({ canvas, controls, token }) {
         }
 
         const code = program.run([
-            (lower + progress * (upper - lower)).toFixed(3),
-            readPoints().join("\n"),
+            (LOWER + progress * (UPPER - LOWER)).toFixed(3),
+            points.join("\n"),
             token("--ink"),
             token("--series-1"),
             token("--series-2"),
@@ -108,7 +100,7 @@ export async function setup({ canvas, controls, token }) {
 
     function start() {
         drawGrid();
-        if (readPoints().length < 2) {
+        if (points.length < 2) {
             running = false;
             return;
         }
@@ -125,31 +117,19 @@ export async function setup({ canvas, controls, token }) {
         const x = toDataX(((event.clientX - box.left) / box.width) * canvas.width);
         const y = toDataY(((event.clientY - box.top) / box.height) * canvas.height);
 
-        const current = points.input.value.trim();
-        const line = `${x.toFixed(2)};${y.toFixed(2)}`;
-        points.input.value = current === "" ? line : `${current}\n${line}`;
+        points = [...points, `${x.toFixed(2)};${y.toFixed(2)}`].sort(
+            (one, other) => Number.parseFloat(one) - Number.parseFloat(other),
+        );
         start();
     });
 
     controls.append(
-        buttons(
-            button("Построить", start, { primary: true }),
-            button("Стоп", () => {
-                running = false;
-            }),
-            button("Очистить", () => {
-                points.input.value = "";
-                running = false;
-                drawGrid();
-            }),
-        ),
-        points.element,
-        slider("Левая граница", { min: -16, max: 0, step: 0.5, value: lower }, (value) => {
-            lower = value;
-        }).element,
-        slider("Правая граница", { min: 0, max: 16, step: 0.5, value: upper }, (value) => {
-            upper = value;
-        }).element,
+        button("Запустить", start, { primary: true }),
+        button("Очистить", () => {
+            points = [];
+            running = false;
+            drawGrid();
+        }),
         legend([
             { color: token("--ink"), label: "узлы" },
             { color: token("--series-1"), label: "многочлен Лагранжа" },

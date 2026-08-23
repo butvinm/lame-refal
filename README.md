@@ -104,11 +104,11 @@ export async function setup({ canvas, controls, token }) {
         env: [canvasEnv(canvas.getContext("2d"))],
     });
 
-    controls.append(slider("Итераций", { min: 1, max: 6, value: 4 }, draw).element);
+    controls.append(button("Запустить", draw, { primary: true }));
 }
 ```
 
-Ленту собирает [site/feed.js](./site/feed.js), кнопки и ползунки лежат в [site/controls.js](./site/controls.js), оформление - в [site/site.css](./site/site.css).
+Панель управления - это строка под холстом; если `controls` оставить пустым, её не будет видно. Ленту собирает [site/feed.js](./site/feed.js), кнопки и поля лежат в [site/controls.js](./site/controls.js), оформление - в [site/site.css](./site/site.css).
 
 ## Сборка своего кода
 

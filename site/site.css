@@ -59,6 +59,12 @@ button:focus-visible,
     color: var(--accent);
 }
 
+/* У ссылки рамки нет, обводить нечем - поэтому тонкая обводка по тексту. */
+a:focus-visible {
+    outline: 1px solid var(--accent);
+    outline-offset: 2px;
+}
+
 .page {
     max-width: 46rem;
     margin: 0 auto;
@@ -305,6 +311,25 @@ button:hover {
 
 .tok-directive {
     font-weight: 600;
+}
+
+/* Подвал */
+
+.footer {
+    padding-top: 2rem;
+    border-top: 1px solid var(--rule);
+    font-family: var(--mono);
+    font-size: 0.8125rem;
+}
+
+.footer a {
+    color: var(--accent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+}
+
+.footer a:hover {
+    text-decoration-thickness: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {

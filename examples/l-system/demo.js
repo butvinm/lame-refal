@@ -1,12 +1,12 @@
 import { load } from "../../runtime/lamehost.js";
 import { canvasEnv } from "../canvas.js";
+import { button } from "../../site/controls.js";
 
 const CANVAS = 1000;
 const MARGIN = 40;
 const STEP = 10;
 const MAX_DEPTH = 6;
 const STEP_MS = 650;
-const HOLD_MS = 2600;
 const SPROUTS = 4;
 
 /** Лента цифр, по одной на итерацию: с неё и начинается новое растение. */
@@ -53,7 +53,7 @@ function ruler() {
     };
 }
 
-export async function setup({ canvas, token }) {
+export async function setup({ canvas, controls, token }) {
     const ctx = canvas.getContext("2d");
     const scout = ruler();
 
@@ -104,38 +104,48 @@ export async function setup({ canvas, token }) {
         return true;
     }
 
-    let digits = seed();
-    let place = fit(digits);
-    if (place === null) return;
+    const slowly = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let frame = null;
 
     /* Растение мерим на полном росте, поэтому оно поднимается в кадре, а не топчется. */
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        draw(MAX_DEPTH, digits, place);
-        return;
-    }
+    function plant() {
+        if (frame !== null) window.cancelAnimationFrame(frame);
+        frame = null;
 
-    let depth = 1;
-    let shown = null;
+        const digits = seed();
+        const place = fit(digits);
+        if (place === null) return;
 
-    function tick(timestamp) {
-        if (shown === null) shown = timestamp;
-
-        const wait = depth === MAX_DEPTH ? HOLD_MS : STEP_MS;
-        if (timestamp - shown >= wait) {
-            if (depth === MAX_DEPTH) {
-                digits = seed();
-                place = fit(digits);
-                depth = 1;
-            } else {
-                depth += 1;
-            }
-
-            if (place === null || !draw(depth, digits, place)) return;
-            shown = timestamp;
+        if (!slowly) {
+            draw(MAX_DEPTH, digits, place);
+            return;
         }
 
-        window.requestAnimationFrame(tick);
+        let depth = 1;
+        let shown = null;
+        if (!draw(depth, digits, place)) return;
+
+        function tick(timestamp) {
+            if (shown === null) shown = timestamp;
+
+            if (timestamp - shown >= STEP_MS) {
+                depth += 1;
+                if (!draw(depth, digits, place)) return;
+                shown = timestamp;
+
+                if (depth === MAX_DEPTH) {
+                    frame = null;
+                    return;
+                }
+            }
+
+            frame = window.requestAnimationFrame(tick);
+        }
+
+        frame = window.requestAnimationFrame(tick);
     }
 
-    if (draw(depth, digits, place)) window.requestAnimationFrame(tick);
+    controls.append(button("Вырастить", plant, { primary: true }));
+
+    plant();
 }

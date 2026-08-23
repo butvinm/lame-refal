@@ -105,6 +105,30 @@ body {
     content: ">";
 }
 
+/* Как это работает: три строки под заголовком */
+
+.lead {
+    max-width: 38rem;
+    padding-bottom: 1rem;
+    color: var(--ink-soft);
+    font-size: 0.9375rem;
+    line-height: 1.55;
+}
+
+.lead p {
+    margin: 0 0 0.6rem;
+}
+
+.lead code {
+    font-family: var(--mono);
+    font-size: 0.875em;
+    padding: 0.05em 0.3em;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    background: var(--card);
+    color: var(--ink);
+}
+
 /* Лента */
 
 .example {

@@ -69,7 +69,7 @@ Next {
 
 ToCanvasCenterX { e.A = <Add (e.A) 500> }
 ToCanvasCenterY { e.A = <Sub 500 e.A> }
-CanvasScale { e.A = <Mul (e.A) 30> }
+CanvasScale { e.A = <Mul (e.A) 50> }
 
 $ENTRY DrawPoint {
   s.R ((e.X) (e.Y)) =

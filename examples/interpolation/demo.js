@@ -4,9 +4,9 @@ import { button, legend } from "../../site/controls.js";
 
 /* Те же числа, что и в main.ref: центр холста и пикселей на единицу. */
 const CENTER = 500;
-const SCALE = 30;
+const SCALE = 50;
 const SWEEP_MS = 6000;
-const LOWER = -5;
+const LOWER = -10;
 const UPPER = 10;
 
 const DEFAULT_POINTS = ["-3.24;0.8", "-0.88;3.77", "1.5;3.47", "5.7;8.02", "7.52;9.75"];
@@ -53,17 +53,18 @@ export async function setup({ canvas, controls, token }) {
         ctx.lineTo(toCanvasX(0), canvas.height);
         ctx.stroke();
 
+        /* Крайние подписи прижимаются внутрь, иначе половина уходит за холст. */
         ctx.fillStyle = token("--ink-faint");
         ctx.font = "22px 'IBM Plex Mono', monospace";
-        for (let n = -15; n <= 15; n += 5) {
+        for (let n = -limit; n <= limit; n += 5) {
             if (n === 0) continue;
 
-            ctx.textAlign = "center";
             ctx.textBaseline = "top";
+            ctx.textAlign = n === -limit ? "left" : n === limit ? "right" : "center";
             ctx.fillText(String(n), toCanvasX(n), toCanvasY(0) + 8);
 
             ctx.textAlign = "right";
-            ctx.textBaseline = "middle";
+            ctx.textBaseline = n === limit ? "top" : n === -limit ? "bottom" : "middle";
             ctx.fillText(String(n), toCanvasX(0) - 10, toCanvasY(n));
         }
     }

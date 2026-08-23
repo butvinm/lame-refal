@@ -34,13 +34,14 @@ export const examples = [
         sources: ["main.ref", "Interpolation.ref"],
         smoke: {
             args: (frame) => [
+                String(frame - 1),
                 String(frame),
                 "-3.24;0.8\n1.5;3.47\n5.7;8.02\n",
                 "rgb(21 23 27)",
                 "rgb(42 120 214)",
-                "rgb(235 104 52)",
+                "rgb(217 89 38)",
             ],
-            expects: "arc",
+            expects: "lineTo",
         },
     },
 ];

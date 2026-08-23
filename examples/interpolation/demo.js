@@ -71,10 +71,13 @@ export async function setup({ canvas, controls, token }) {
     let points = [...DEFAULT_POINTS];
     let running = false;
     let origin = 0;
+    let drawn = LOWER;
 
-    function runAt(x) {
+    /* Программа рисует кусок кривой от x0 до x1, поэтому левый конец ведёт страница. */
+    function runSegment(x0, x1) {
         const code = program.run([
-            x.toFixed(3),
+            x0.toFixed(3),
+            x1.toFixed(3),
             points.join("\n"),
             token("--ink"),
             token("--series-1"),
@@ -93,11 +96,18 @@ export async function setup({ canvas, controls, token }) {
         if (!running) return;
 
         const progress = (timestamp - origin) / SWEEP_MS;
-        if (progress > 1 || !runAt(LOWER + progress * (UPPER - LOWER))) {
+        if (progress > 1) {
             running = false;
             return;
         }
 
+        const x = LOWER + progress * (UPPER - LOWER);
+        if (!runSegment(drawn, x)) {
+            running = false;
+            return;
+        }
+
+        drawn = x;
         window.requestAnimationFrame(frame);
     }
 
@@ -108,11 +118,12 @@ export async function setup({ canvas, controls, token }) {
 
         /* Кривые начинаются с двух узлов, один узел просто показываем. */
         if (points.length < 2) {
-            runAt(LOWER);
+            runSegment(LOWER, LOWER);
             return;
         }
 
         running = true;
+        drawn = LOWER;
         window.requestAnimationFrame((timestamp) => {
             origin = timestamp;
             window.requestAnimationFrame(frame);

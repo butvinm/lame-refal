@@ -44,16 +44,12 @@ function buildSection(example) {
     canvas.setAttribute("role", "img");
     canvas.setAttribute("aria-label", example.title);
 
-    const frame = document.createElement("div");
-    frame.className = "canvas-frame";
-    frame.append(canvas);
-
     const controls = document.createElement("div");
     controls.className = "controls";
 
     const demo = document.createElement("div");
     demo.className = "example__demo";
-    demo.append(frame, controls);
+    demo.append(canvas, controls);
 
     const code = document.createElement("code");
     const listing = document.createElement("pre");

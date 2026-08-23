@@ -21,8 +21,7 @@ export async function setup({ canvas, token }) {
         const startX = Math.round((CANVAS - span) / 2);
         const startY = startX + span;
 
-        ctx.fillStyle = token("--surface");
-        ctx.fillRect(0, 0, CANVAS, CANVAS);
+        ctx.clearRect(0, 0, CANVAS, CANVAS);
         ctx.lineJoin = "round";
         ctx.lineCap = "round";
 

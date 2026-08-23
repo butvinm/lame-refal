@@ -46,8 +46,7 @@ export async function setup({ canvas, controls, token }) {
         if (frame !== null) window.cancelAnimationFrame(frame);
         generation = tapeFromSeed(seed.value);
         row = 0;
-        ctx.fillStyle = token("--surface");
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         frame = window.requestAnimationFrame(tick);
     }
 

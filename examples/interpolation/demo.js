@@ -26,8 +26,7 @@ export async function setup({ canvas, controls, token }) {
     const limit = Math.floor(CENTER / SCALE);
 
     function drawGrid() {
-        ctx.fillStyle = token("--surface");
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         for (let n = -limit; n <= limit; n++) {
             const major = n % 5 === 0;

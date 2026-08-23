@@ -261,18 +261,27 @@ textarea {
     overflow: hidden;
 }
 
+/* display: block убирает родной треугольник там, где list-style его не берёт. */
 .source > summary {
+    display: block;
     cursor: pointer;
-    padding: 0.55rem 0.9rem;
+    padding: 0.6rem 0.9rem;
     font-family: var(--mono);
-    font-size: 0.8125rem;
-    letter-spacing: 0.04em;
-    color: var(--ink-soft);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
     list-style: none;
 }
 
-.source > summary::-webkit-details-marker {
+.source > summary::-webkit-details-marker,
+.source > summary::marker {
     display: none;
+    content: "";
+}
+
+.source > summary:hover {
+    color: var(--ink-soft);
 }
 
 .source > summary::before {

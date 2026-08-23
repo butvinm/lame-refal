@@ -11,8 +11,7 @@ $EXTERN BeginPath, MoveTo, LineTo, Stroke, SetStrokeStyle, SetLineWidth;
     <Arg 4>   цвет линии
 
   Сначала строка переписывается по продукциям, потом черепашка читает
-  готовое слово и превращает его в ломаную. Само слово печатается
-  на стандартный вывод, чтобы страница могла его показать.
+  готовое слово и превращает его в ломаную.
 */
 $ENTRY Go {
   = <Render <Grow <Numb <Arg 0>> 'A'>>;
@@ -41,7 +40,6 @@ Expand {
 
 Render {
   e.Word =
-    <Prout e.Word>
     <SetStrokeStyle <Arg 4>>
     <SetLineWidth 2>
     <BeginPath>

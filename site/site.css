@@ -1,4 +1,4 @@
-/* Общее оформление корневой страницы и страниц примеров. */
+/* Оформление ленты примеров. */
 
 :root {
     color-scheme: light;
@@ -11,17 +11,13 @@
     --ink-faint: #8b8e95;
     --rule: #e3e1da;
     --accent: #1a5fb4;
-    --accent-soft: #e8f0fb;
 
-    /* Ряды графика: первые три слота проверенной категориальной палитры. */
+    /* Ряды графика: первые слоты проверенной категориальной палитры. */
     --series-1: #2a78d6;
     --series-2: #eb6834;
 
     --sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-
-    --measure: 46rem;
-    --wide: 76rem;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -36,7 +32,6 @@
         --ink-faint: #7a7c82;
         --rule: #32343a;
         --accent: #6ba4ea;
-        --accent-soft: #1e2836;
 
         --series-1: #3987e5;
         --series-2: #d95926;
@@ -56,18 +51,8 @@ body {
     color: var(--ink);
     font-family: var(--sans);
     font-size: 1.0625rem;
-    line-height: 1.65;
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
-}
-
-a {
-    color: var(--accent);
-    text-decoration-thickness: 1px;
-    text-underline-offset: 0.18em;
-}
-
-a:hover {
-    text-decoration-thickness: 2px;
 }
 
 :focus-visible {
@@ -75,27 +60,16 @@ a:hover {
     outline-offset: 3px;
 }
 
-code,
-pre,
-kbd {
-    font-family: var(--mono);
-}
-
-/* Ширина колонки */
-
 .page {
-    max-width: var(--measure);
+    max-width: 84rem;
     margin: 0 auto;
 }
 
-.page--wide {
-    max-width: var(--wide);
-}
-
-/* Заголовки: вызов рефал-функции - это угловые скобки, страница говорит на том же языке. */
+/* Заголовки: вызов рефал-функции - это угловые скобки,
+   страница говорит на том же языке, что и примеры. */
 
 .title,
-.section > h2 {
+.example > h2 {
     font-family: var(--mono);
     font-weight: 600;
     letter-spacing: -0.02em;
@@ -105,227 +79,67 @@ kbd {
 
 .title {
     font-size: clamp(2rem, 6vw, 3.25rem);
+    padding: 4rem 0 1rem;
 }
 
-.section > h2 {
-    font-size: 1.375rem;
+.example > h2 {
+    font-size: 1.5rem;
+    padding-bottom: 1.25rem;
 }
 
 .title::before,
 .title::after,
-.section > h2::before,
-.section > h2::after {
+.example > h2::before,
+.example > h2::after {
     color: var(--accent);
     font-weight: 400;
 }
 
 .title::before,
-.section > h2::before {
+.example > h2::before {
     content: "<";
 }
 
 .title::after,
-.section > h2::after {
+.example > h2::after {
     content: ">";
 }
 
-h3 {
-    font-size: 1.0625rem;
-    font-weight: 600;
-    margin: 2rem 0 0.35rem;
-}
+/* Лента */
 
-/* Мелкие подписи */
-
-.label {
-    font-family: var(--mono);
-    font-size: 0.75rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--ink-faint);
-}
-
-/* Шапка корневой страницы */
-
-.hero {
-    padding: 4.5rem 0 3rem;
-}
-
-.hero__lead {
-    font-size: 1.1875rem;
-    color: var(--ink-soft);
-    margin: 1.25rem 0 0;
-    max-width: 34rem;
-}
-
-.hero__epigraph {
-    margin: 2.5rem 0 0;
-    padding-left: 1.1rem;
-    border-left: 2px solid var(--rule);
-    color: var(--ink-soft);
-    font-size: 0.9375rem;
-}
-
-.hero__epigraph cite {
-    display: block;
-    margin-top: 0.35rem;
-    font-style: normal;
-    color: var(--ink-faint);
-    font-family: var(--mono);
-    font-size: 0.8125rem;
-}
-
-/* Разделы */
-
-.section {
-    padding-top: 3.5rem;
-}
-
-.section > p {
-    margin: 1rem 0 0;
-}
-
-/* Код */
-
-pre {
-    margin: 1.25rem 0 0;
-    padding: 1rem 1.15rem;
-    background: var(--card);
-    border: 1px solid var(--rule);
-    border-radius: 3px;
-    overflow-x: auto;
-    font-size: 0.875rem;
-    line-height: 1.55;
-    tab-size: 2;
-}
-
-pre code {
-    font-size: inherit;
-}
-
-p code,
-li code {
-    background: var(--card);
-    border: 1px solid var(--rule);
-    border-radius: 3px;
-    padding: 0.05em 0.3em;
-    font-size: 0.875em;
-}
-
-/* Карточки примеров */
-
-.cards {
-    list-style: none;
-    margin: 1.5rem 0 0;
-    padding: 0;
-    display: grid;
-    gap: 0.75rem;
-}
-
-@media (min-width: 40rem) {
-    .cards {
-        grid-template-columns: 1fr 1fr;
-    }
-}
-
-.card {
-    display: block;
-    padding: 1.15rem 1.25rem 1.25rem;
-    background: var(--surface);
-    border: 1px solid var(--rule);
-    border-radius: 3px;
-    color: inherit;
-    text-decoration: none;
-    transition: border-color 0.15s, transform 0.15s;
-}
-
-.card:hover {
-    border-color: var(--accent);
-    transform: translateY(-2px);
-}
-
-.card__title {
-    font-family: var(--mono);
-    font-weight: 600;
-    font-size: 1.0625rem;
-}
-
-.card__summary {
-    margin: 0.4rem 0 0;
-    font-size: 0.9375rem;
-    color: var(--ink-soft);
-    line-height: 1.5;
-}
-
-.card__shows {
-    margin: 0.85rem 0 0;
-    padding: 0;
-    list-style: none;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-}
-
-.card__shows li {
-    font-family: var(--mono);
-    font-size: 0.6875rem;
-    letter-spacing: 0.04em;
-    color: var(--ink-soft);
-    background: var(--card);
-    border: 1px solid var(--rule);
-    border-radius: 999px;
-    padding: 0.1rem 0.55rem;
-}
-
-/* Подвал */
-
-.footer {
-    margin-top: 4.5rem;
-    padding-top: 1.5rem;
+.example {
+    padding: 3rem 0;
     border-top: 1px solid var(--rule);
-    font-size: 0.9375rem;
-    color: var(--ink-soft);
 }
 
-/* Шапка страницы примера */
-
-.crumbs {
-    padding: 2rem 0 0;
-    font-family: var(--mono);
-    font-size: 0.8125rem;
-}
-
-.example-head {
-    padding: 1.5rem 0 2rem;
-}
-
-.example-head h1 {
-    font-family: var(--mono);
-    font-weight: 600;
-    font-size: 1.75rem;
-    letter-spacing: -0.02em;
-    margin: 0;
-}
-
-.example-head p {
-    margin: 0.5rem 0 0;
-    color: var(--ink-soft);
-    max-width: 42rem;
-}
-
-/* Раскладка примера: холст и панель управления */
-
-.demo {
+.example__body {
     display: grid;
     gap: 1.5rem;
     align-items: start;
 }
 
-@media (min-width: 60rem) {
-    .demo {
-        grid-template-columns: minmax(0, 1fr) 17rem;
+.example__demo {
+    display: grid;
+    gap: 1.25rem;
+}
+
+@media (min-width: 56rem) {
+    .example__body {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     }
 }
+
+@media (min-width: 78rem) {
+    .example__body {
+        grid-template-columns: minmax(0, 1fr) 14rem minmax(0, 1fr);
+    }
+
+    .example__demo {
+        display: contents;
+    }
+}
+
+/* Холст */
 
 .canvas-frame {
     background: var(--surface);
@@ -341,7 +155,7 @@ li code {
     border-radius: 2px;
 }
 
-/* Панель управления */
+/* Управление */
 
 .controls {
     display: flex;
@@ -353,6 +167,14 @@ li code {
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
+}
+
+.label {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
 }
 
 .control__row {
@@ -389,7 +211,7 @@ button {
     background: var(--surface);
     color: var(--ink);
     cursor: pointer;
-    transition: border-color 0.15s, background 0.15s;
+    transition: border-color 0.15s;
 }
 
 button:hover {
@@ -418,38 +240,12 @@ textarea {
     resize: vertical;
 }
 
-textarea:focus-visible,
-button:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-}
-
-/* Сводка о рисунке */
-
-.stats {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 0.15rem 0.75rem;
-    margin: 0;
-    font-size: 0.875rem;
-}
-
-.stats dt {
-    color: var(--ink-soft);
-}
-
-.stats dd {
-    margin: 0;
-    font-family: var(--mono);
-    text-align: right;
-}
-
 /* Легенда графика */
 
 .legend {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem 1rem;
+    flex-direction: column;
+    gap: 0.35rem;
     margin: 0;
     padding: 0;
     list-style: none;
@@ -470,68 +266,21 @@ button:focus-visible {
     flex: none;
 }
 
-/* Вывод программы и исходник */
+/* Текст программы */
 
-.panels {
-    margin-top: 2.5rem;
-    display: grid;
-    gap: 1.25rem;
-}
-
-@media (min-width: 60rem) {
-    .panels {
-        grid-template-columns: 1fr 1fr;
-    }
-}
-
-details.panel {
+.source {
+    margin: 0;
+    padding: 1rem 1.15rem;
+    background: var(--card);
     border: 1px solid var(--rule);
     border-radius: 3px;
-    background: var(--surface);
-    overflow: hidden;
-}
-
-details.panel > summary {
-    cursor: pointer;
-    padding: 0.6rem 0.9rem;
     font-family: var(--mono);
     font-size: 0.8125rem;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--ink-soft);
-    list-style: none;
-}
-
-details.panel > summary::-webkit-details-marker {
-    display: none;
-}
-
-details.panel > summary::before {
-    content: "+ ";
-    color: var(--accent);
-}
-
-details.panel[open] > summary::before {
-    content: "- ";
-}
-
-details.panel pre {
-    margin: 0;
-    border: 0;
-    border-top: 1px solid var(--rule);
-    border-radius: 0;
-    max-height: 26rem;
+    line-height: 1.55;
+    max-height: 36rem;
     overflow: auto;
-    white-space: pre-wrap;
-    word-break: break-word;
+    tab-size: 2;
 }
-
-.console:empty::after {
-    content: "Пока ничего не напечатано.";
-    color: var(--ink-faint);
-}
-
-/* Подсветка рефала */
 
 .tok-comment {
     color: var(--ink-faint);

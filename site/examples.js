@@ -1,5 +1,5 @@
 /**
- * Список примеров: из него собираются карточки на корневой странице
+ * Список примеров: из него собирается лента на странице
  * и список случаев в tests/smoke.mjs.
  */
 
@@ -15,8 +15,6 @@ export const examples = [
     {
         slug: "cellular-automaton",
         title: "Клеточный автомат",
-        summary: "Правило 110 записано таблицей предложений: восемь окрестностей, восемь строк кода.",
-        shows: ["сопоставление с образцом", "argv и stdout", "canvas"],
         smoke: {
             args: (frame) => [initialGeneration(), String(frame), "rgb(21 23 27)"],
             expects: "fillRect",
@@ -25,8 +23,6 @@ export const examples = [
     {
         slug: "l-system",
         title: "L-система",
-        summary: "Кривая Гильберта: продукции переписывают строку, черепашка её читает и рисует.",
-        shows: ["переписывание термов", "рекурсия по строке", "canvas"],
         smoke: {
             args: () => ["4", "62", "35", "965", "rgb(42 120 214)"],
             expects: "lineTo",
@@ -35,8 +31,7 @@ export const examples = [
     {
         slug: "interpolation",
         title: "Интерполяция",
-        summary: "Многочлен Лагранжа и ломаная по одним и тем же узлам, посчитанные в фиксированной точке.",
-        shows: ["арифметика с фиксированной точкой", "разбор ввода", "canvas"],
+        sources: ["main.ref", "Interpolation.ref"],
         smoke: {
             args: (frame) => [
                 String(frame),
@@ -49,8 +44,3 @@ export const examples = [
         },
     },
 ];
-
-/** Ссылка на пример относительно корня сайта. */
-export function exampleHref(example) {
-    return `./examples/${encodeURIComponent(example.slug)}/`;
-}

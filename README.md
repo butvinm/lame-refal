@@ -71,22 +71,22 @@ REFAL05C=/путь/к/refal05c make
 
 ## Добавление примера
 
+Отдельных страниц у примеров нет: все они лежат лентой на корневой странице, каждый со своим `main.wasm`.
+
 ```
 examples/мой-пример/
   main.ref     ваш код
-  index.html   страница, которая грузит main.wasm
+  demo.js      что показывать и чем этим управлять
 ```
 
 `make` собирает все примеры автоматически: каталог с `main.ref` внутри `examples/` считается примером.
 
-Описание примера лежит в [site/examples.js](./site/examples.js) - оттуда берутся и карточки на корневой странице, и список случаев в `make test`. Добавьте туда запись, и пример появится в обоих местах:
+Запись в [site/examples.js](./site/examples.js) добавляет пример и в ленту, и в `make test`:
 
 ```js
 {
     slug: "мой-пример",
     title: "Мой пример",
-    summary: "Одна строка о том, что здесь происходит.",
-    shows: ["что демонстрирует"],
     smoke: {
         args: (frame) => ["аргумент"],
         expects: "fillRect",
@@ -94,7 +94,21 @@ examples/мой-пример/
 }
 ```
 
-Общее оформление и шапка страницы примера лежат в [site](./site/): `site.css` и `site/example-page.js`. Последний заполняет заголовок по манифесту, подтягивает исходник в панель и собирает панель вывода.
+Необязательное поле `sources` перечисляет модули, которые показывать под примером; по умолчанию это один `main.ref`.
+
+`demo.js` экспортирует `setup` и получает готовый холст, пустую панель управления и доступ к цветам страницы:
+
+```js
+export async function setup({ canvas, controls, token }) {
+    const program = await load(new URL("./main.wasm", import.meta.url), {
+        env: [canvasEnv(canvas.getContext("2d"))],
+    });
+
+    controls.append(slider("Итераций", { min: 1, max: 6, value: 4 }, draw).element);
+}
+```
+
+Ленту собирает [site/feed.js](./site/feed.js), кнопки и ползунки лежат в [site/controls.js](./site/controls.js), оформление - в [site/site.css](./site/site.css).
 
 ## Сборка своего кода
 

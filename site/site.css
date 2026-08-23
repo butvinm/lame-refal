@@ -3,39 +3,24 @@
 :root {
     color-scheme: light;
 
-    --paper: #fbfbfa;
-    --surface: #ffffff;
-    --card: #f5f3ed;
-    --ink: #15171b;
-    --ink-soft: #5a5d64;
-    --ink-faint: #8b8e95;
-    --rule: #e3e1da;
+    --paper: #f4f1e8;
+    --surface: #fdfcf8;
+    --card: #edeade;
+    --ink: #1c1a17;
+    --ink-soft: #5b564c;
+    --ink-faint: #777164;
+    --rule: #ddd7c7;
     --accent: #1a5fb4;
 
-    /* Ряды графика: первые слоты проверенной категориальной палитры. */
+    /* Ряды графика: проверенная категориальная пара, светлые слоты. */
     --series-1: #2a78d6;
     --series-2: #eb6834;
 
     --sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-}
 
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-        color-scheme: dark;
-
-        --paper: #16171a;
-        --surface: #1c1e22;
-        --card: #212328;
-        --ink: #f1f0eb;
-        --ink-soft: #a5a6a0;
-        --ink-faint: #7a7c82;
-        --rule: #32343a;
-        --accent: #6ba4ea;
-
-        --series-1: #3987e5;
-        --series-2: #d95926;
-    }
+    /* Зерно бумаги: тот же шум, что даёт feTurbulence, свёрнутый в адрес данных. */
+    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.16 0.16 0.16 0 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23p)'/%3E%3C/svg%3E");
 }
 
 *,
@@ -47,7 +32,8 @@
 body {
     margin: 0;
     padding: 0 1.25rem 5rem;
-    background: var(--paper);
+    background-color: var(--paper);
+    background-image: var(--grain);
     color: var(--ink);
     font-family: var(--sans);
     font-size: 1.0625rem;

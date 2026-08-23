@@ -24,7 +24,7 @@ export const examples = [
         slug: "l-system",
         title: "L-система",
         smoke: {
-            args: () => ["4", "62", "35", "965", "rgb(42 120 214)"],
+            args: () => ["6", "10", "012301", "rgb(107 74 42)", "rgb(92 122 47)"],
             expects: "lineTo",
         },
     },

@@ -2,36 +2,99 @@ import { load } from "../../runtime/lamehost.js";
 import { canvasEnv } from "../canvas.js";
 
 const CANVAS = 1000;
-const MARGIN = 30;
+const MARGIN = 40;
+const STEP = 10;
 const MAX_DEPTH = 6;
-const STEP_MS = 700;
-const HOLD_MS = 2400;
+const STEP_MS = 650;
+const HOLD_MS = 2600;
+const SPROUTS = 4;
+
+/** Лента цифр, по одной на итерацию: с неё и начинается новое растение. */
+function seed() {
+    return Array.from({ length: MAX_DEPTH }, () =>
+        Math.floor(Math.random() * SPROUTS),
+    ).join("");
+}
+
+/**
+ * Поверхность, которая ничего не рисует, а только запоминает габарит пути.
+ * Рантайму всё равно, кому отдавать вызовы холста, поэтому измерить растение
+ * можно тем же способом, каким его потом рисуют.
+ */
+function ruler() {
+    let box = null;
+
+    const note = (x, y) => {
+        box =
+            box === null
+                ? { minX: x, maxX: x, minY: y, maxY: y }
+                : {
+                      minX: Math.min(box.minX, x),
+                      maxX: Math.max(box.maxX, x),
+                      minY: Math.min(box.minY, y),
+                      maxY: Math.max(box.maxY, y),
+                  };
+    };
+
+    return {
+        surface: new Proxy(
+            {},
+            {
+                get: (target, name) =>
+                    name === "moveTo" || name === "lineTo" ? note : () => {},
+                set: () => true,
+            },
+        ),
+        measure: (run) => {
+            box = null;
+            run();
+            return box;
+        },
+    };
+}
 
 export async function setup({ canvas, token }) {
     const ctx = canvas.getContext("2d");
+    const scout = ruler();
 
-    const program = await load(new URL("./main.wasm", import.meta.url), {
-        env: [canvasEnv(ctx)],
-    });
+    const url = new URL("./main.wasm", import.meta.url);
+    const measuring = await load(url, { env: [canvasEnv(scout.surface)] });
+    const drawing = await load(url, { env: [canvasEnv(ctx)] });
 
-    function draw(depth) {
-        const side = 2 ** depth - 1;
-        const step = Math.max(1, Math.floor((CANVAS - 2 * MARGIN) / side));
-        const span = side * step;
-        const startX = Math.round((CANVAS - span) / 2);
-        const startY = startX + span;
+    const args = (depth, digits) => [
+        String(depth),
+        String(STEP),
+        digits,
+        token("--bark"),
+        token("--leaf"),
+    ];
 
+    /** Куда и с каким увеличением поместить растение, чтобы оно село на холст. */
+    function fit(digits) {
+        const box = scout.measure(() => measuring.run(args(MAX_DEPTH, digits)));
+        if (box === null) return null;
+
+        const width = Math.max(box.maxX - box.minX, 1);
+        const height = Math.max(box.maxY - box.minY, 1);
+        const room = CANVAS - 2 * MARGIN;
+        const scale = Math.min(room / width, room / height);
+
+        return {
+            scale,
+            x: (CANVAS - width * scale) / 2 - box.minX * scale,
+            y: (CANVAS - height * scale) / 2 - box.minY * scale,
+        };
+    }
+
+    function draw(depth, digits, place) {
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, CANVAS, CANVAS);
-        ctx.lineJoin = "round";
         ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.setTransform(place.scale, 0, 0, place.scale, place.x, place.y);
 
-        const code = program.run([
-            String(depth),
-            String(step),
-            String(startX),
-            String(startY),
-            token("--accent"),
-        ]);
+        const code = drawing.run(args(depth, digits));
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
 
         if (code !== 0) {
             console.error(`L-система: рефал-машина завершилась с кодом ${code}`);
@@ -41,9 +104,13 @@ export async function setup({ canvas, token }) {
         return true;
     }
 
-    /* Кому анимация мешает, тот сразу видит готовую кривую. */
+    let digits = seed();
+    let place = fit(digits);
+    if (place === null) return;
+
+    /* Растение мерим на полном росте, поэтому оно поднимается в кадре, а не топчется. */
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        draw(MAX_DEPTH);
+        draw(MAX_DEPTH, digits, place);
         return;
     }
 
@@ -55,13 +122,20 @@ export async function setup({ canvas, token }) {
 
         const wait = depth === MAX_DEPTH ? HOLD_MS : STEP_MS;
         if (timestamp - shown >= wait) {
-            depth = depth === MAX_DEPTH ? 1 : depth + 1;
-            if (!draw(depth)) return;
+            if (depth === MAX_DEPTH) {
+                digits = seed();
+                place = fit(digits);
+                depth = 1;
+            } else {
+                depth += 1;
+            }
+
+            if (place === null || !draw(depth, digits, place)) return;
             shown = timestamp;
         }
 
         window.requestAnimationFrame(tick);
     }
 
-    if (draw(depth)) window.requestAnimationFrame(tick);
+    if (draw(depth, digits, place)) window.requestAnimationFrame(tick);
 }

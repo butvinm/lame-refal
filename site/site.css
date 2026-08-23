@@ -15,6 +15,10 @@
     --series-1: #2a78d6;
     --series-2: #d95926;
 
+    /* Растение: ствол и молодые побеги. */
+    --bark: #6b4a2a;
+    --leaf: #5c7a2f;
+
     --sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 

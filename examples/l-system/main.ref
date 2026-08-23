@@ -2,86 +2,127 @@
 $EXTERN BeginPath, MoveTo, LineTo, Stroke, SetStrokeStyle, SetLineWidth;
 
 /*
-  L-система: кривая Гильберта.
+  L-система: ветвящееся растение.
 
     <Arg 0>   число итераций
-    <Arg 1>   длина шага черепашки в пикселях
-    <Arg 2>   абсцисса начала пути
-    <Arg 3>   ордината начала пути
-    <Arg 4>   цвет линии
+    <Arg 1>   длина шага черепашки
+    <Arg 2>   лента цифр, по одной на итерацию: она решает,
+              каким предложением растёт побег на этом уровне
+    <Arg 3>   цвет ствола
+    <Arg 4>   цвет молодых побегов
 
   Сначала строка переписывается по продукциям, потом черепашка читает
-  готовое слово и превращает его в ломаную.
+  готовое слово и превращает его в ветки.
 */
 $ENTRY Go {
-  = <Render <Grow <Numb <Arg 0>> 'A'>>;
+  = <Draw <Grow <Numb <Arg 0>> (<Arg 2>) 'X'>>;
 }
 
 StepLen { = <Numb <Arg 1>> }
-StartX  { = <Numb <Arg 2>> }
-StartY  { = <Numb <Arg 3>> }
 
-/* Продукции системы - по предложению на правило. */
-Rewrite {
-  'A' = '-BF+AFA+FB-';
-  'B' = '+AF-BFB-FA+';
-  s.Other = s.Other;
+/* Четыре способа вырастить побег: ветка вправо, влево, развилка, рогатка. */
+Sprout {
+  '0' = 'F[+X]F[-X]+X';
+  '1' = 'F[-X]F[+X]-X';
+  '2' = 'F[+X][-X]FX';
+  '3' = 'FF[+X][-X]X';
+  s.Other = 'FX';
 }
 
+Rewrite {
+  s.Digit 'X' = <Sprout s.Digit>;
+  s.Digit 'F' = 'FF';
+  s.Digit s.Other = s.Other;
+}
+
+/* Цифра тратится по одной на итерацию, кончились - растём как получится. */
 Grow {
-  0 e.Word = e.Word;
-  s.N e.Word = <Grow <Sub (s.N) 1> <Expand e.Word>>;
+  0 (e.Digits) e.Word = e.Word;
+
+  s.N (s.Digit e.Digits) e.Word =
+    <Grow <Sub (s.N) 1> (e.Digits) <Expand s.Digit e.Word>>;
+
+  s.N () e.Word = <Grow <Sub (s.N) 1> () <Expand '0' e.Word>>;
 }
 
 Expand {
-  = ;
-  s.Sym e.Rest = <Rewrite s.Sym> <Expand e.Rest>;
-}
-
-Render {
-  e.Word =
-    <SetStrokeStyle <Arg 4>>
-    <SetLineWidth 2>
-    <BeginPath>
-    <MoveTo (<StartX>) (<StartY>)>
-    <Walk 0 (<StartX>) (<StartY>) e.Word>
-    <Stroke>;
+  s.Digit = ;
+  s.Digit s.Sym e.Rest = <Rewrite s.Digit s.Sym> <Expand s.Digit e.Rest>;
 }
 
 /*
-  Черепашка. Направление - число от 0 до 3, отсчёт по часовой стрелке
-  от направления вправо. 'F' - шаг вперёд, '+' - поворот направо,
-  '-' - налево, остальные литеры на бумаге не оставляют следа.
+  Черепашка. Направление - число от 0 до 15, шаг поворота 22.5 градуса.
+  Тригонометрии в Рефале нет, поэтому косинусы и синусы лежат таблицей,
+  умноженные на тысячу. Начинаем из нуля вверх; куда попадёт рисунок,
+  решает страница, сдвигая систему координат холста.
 */
+Draw {
+  e.Word = <Walk 12 0 (0) (0) () e.Word>;
+}
+
 Walk {
-  s.Dir (e.X) (e.Y) = ;
+  s.Dir s.Depth (e.X) (e.Y) (e.Stack) = ;
 
-  s.Dir (e.X) (e.Y) 'F' e.Rest =
-    <Trace s.Dir (<NextX s.Dir (e.X)>) (<NextY s.Dir (e.Y)>) e.Rest>;
+  s.Dir s.Depth (e.X) (e.Y) (e.Stack) 'F' e.Rest =
+    <Segment
+      s.Dir s.Depth (e.X) (e.Y)
+      (<Add (e.X) <Shift <DeltaX s.Dir>>>)
+      (<Add (e.Y) <Shift <DeltaY s.Dir>>>)
+      (e.Stack) e.Rest
+    >;
 
-  s.Dir (e.X) (e.Y) '+' e.Rest = <Walk <Turn s.Dir 1> (e.X) (e.Y) e.Rest>;
-  s.Dir (e.X) (e.Y) '-' e.Rest = <Walk <Turn s.Dir 3> (e.X) (e.Y) e.Rest>;
-  s.Dir (e.X) (e.Y) s.Skip e.Rest = <Walk s.Dir (e.X) (e.Y) e.Rest>;
+  s.Dir s.Depth (e.X) (e.Y) (e.Stack) '+' e.Rest =
+    <Walk <Turn s.Dir 1> s.Depth (e.X) (e.Y) (e.Stack) e.Rest>;
+
+  s.Dir s.Depth (e.X) (e.Y) (e.Stack) '-' e.Rest =
+    <Walk <Turn s.Dir 15> s.Depth (e.X) (e.Y) (e.Stack) e.Rest>;
+
+  /* Развилка: положение и направление ложатся на стек. */
+  s.Dir s.Depth (e.X) (e.Y) (e.Stack) '[' e.Rest =
+    <Walk s.Dir <Add (s.Depth) 1> (e.X) (e.Y)
+      ((s.Dir (e.X) (e.Y)) e.Stack) e.Rest>;
+
+  s.Dir s.Depth (e.X) (e.Y) ((s.Old (e.OldX) (e.OldY)) e.Stack) ']' e.Rest =
+    <Walk s.Old <Sub (s.Depth) 1> (e.OldX) (e.OldY) (e.Stack) e.Rest>;
+
+  s.Dir s.Depth (e.X) (e.Y) (e.Stack) s.Skip e.Rest =
+    <Walk s.Dir s.Depth (e.X) (e.Y) (e.Stack) e.Rest>;
 }
 
-Trace {
-  s.Dir (e.X) (e.Y) e.Rest =
-    <LineTo (e.X) (e.Y)>
-    <Walk s.Dir (e.X) (e.Y) e.Rest>;
+Segment {
+  s.Dir s.Depth (e.X) (e.Y) (e.NextX) (e.NextY) (e.Stack) e.Rest =
+    <SetLineWidth <Thickness s.Depth>>
+    <SetStrokeStyle <Tint s.Depth>>
+    <BeginPath>
+    <MoveTo (e.X) (e.Y)>
+    <LineTo (e.NextX) (e.NextY)>
+    <Stroke>
+    <Walk s.Dir s.Depth (e.NextX) (e.NextY) (e.Stack) e.Rest>;
 }
 
-Turn {
-  s.Dir s.Delta = <Mod (<Add (s.Dir) s.Delta>) 4>;
+Shift { e.Delta = <Div (<Mul (<StepLen>) e.Delta>) 1000> }
+
+Turn { s.Dir s.Delta = <Mod (<Add (s.Dir) s.Delta>) 16> }
+
+/* Чем дальше от ствола, тем тоньше ветка и тем она моложе. */
+Thickness {
+  0 = 14; 1 = 10; 2 = 7; 3 = 5; 4 = 4; 5 = 3; s.Deep = 2;
 }
 
-NextX {
-  0 (e.X) = <Add (e.X) <StepLen>>;
-  2 (e.X) = <Sub (e.X) <StepLen>>;
-  s.Dir (e.X) = e.X;
+Tint {
+  0 = <Arg 3>; 1 = <Arg 3>; 2 = <Arg 3>; s.Deep = <Arg 4>;
 }
 
-NextY {
-  1 (e.Y) = <Add (e.Y) <StepLen>>;
-  3 (e.Y) = <Sub (e.Y) <StepLen>>;
-  s.Dir (e.Y) = e.Y;
+DeltaX {
+   0 = 1000;  1 = 924;  2 = 707;  3 = 383;
+   4 = 0;  5 = '-' 383;  6 = '-' 707;  7 = '-' 924;
+   8 = '-' 1000;  9 = '-' 924;  10 = '-' 707;  11 = '-' 383;
+  12 = 0;  13 = 383;  14 = 707;  15 = 924;
+}
+
+DeltaY {
+   0 = 0;  1 = 383;  2 = 707;  3 = 924;
+   4 = 1000;  5 = 924;  6 = 707;  7 = 383;
+   8 = 0;  9 = '-' 383;  10 = '-' 707;  11 = '-' 924;
+  12 = '-' 1000;  13 = '-' 924;  14 = '-' 707;  15 = '-' 383;
 }

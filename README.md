@@ -4,13 +4,13 @@
 >
 > @Mazdaywik
 
-Компиляция программ на [Refal-05](https://github.com/Mazdaywik/Refal-05) в WebAssembly и примеры браузерных приложений на нём - [GitHub Pages](https://butvinm.github.io/lame-refal/).
+Компиляция программ на [Рефал-05](https://github.com/Mazdaywik/Refal-05) в WebAssembly и примеры браузерных приложений на нём - [GitHub Pages](https://butvinm.github.io/lame-refal/).
 
 > ~~не повторяйте это дома~~ В связи с появлением [Refal-05-Standalone](https://github.com/butvinm/Refal-05-Standalone) и упрощением сборки, МинЗдрав одобрил сборку в домашних условиях без вреда психическому здоровью
 
 ## Как это устроено
 
-Проект собирает сгенерированные [Refal-05](https://github.com/Mazdaywik/Refal-05) исходники на C в WebAssembly при помощи `clang`.
+Проект собирает сгенерированные [Рефал-05](https://github.com/Mazdaywik/Refal-05) исходники на C в WebAssembly при помощи `clang`.
 
 [JS-рантайм](./runtime/lamehost.js) оборачивает вызов Рефал-машины, восстанавливая состояние памяти перед каждым вызовом и передавая произвольные строковые аргументы в `argv`. Аргументы из `program.run([...])` видны в Рефале как `<Arg 0>`, `<Arg 1>` и так далее.
 

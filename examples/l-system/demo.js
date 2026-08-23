@@ -145,7 +145,7 @@ export async function setup({ canvas, controls, token }) {
         frame = window.requestAnimationFrame(tick);
     }
 
-    controls.append(button("Вырастить", plant, { primary: true }));
+    controls.append(button("Запустить", plant, { primary: true }));
 
     plant();
 }

@@ -69,8 +69,8 @@ export async function setup({ canvas, controls, token }) {
     }
 
     let points = [...DEFAULT_POINTS];
-    let running = false;
-    let origin = 0;
+    let frame = null;
+    let origin = null;
     let drawn = LOWER;
 
     /* Программа рисует кусок кривой от x0 до x1, поэтому левый конец ведёт страница. */
@@ -92,27 +92,37 @@ export async function setup({ canvas, controls, token }) {
         return true;
     }
 
-    function frame(timestamp) {
-        if (!running) return;
+    function tick(timestamp) {
+        if (origin === null) origin = timestamp;
 
         const progress = (timestamp - origin) / SWEEP_MS;
         if (progress > 1) {
-            running = false;
+            frame = null;
             return;
         }
 
         const x = LOWER + progress * (UPPER - LOWER);
         if (!runSegment(drawn, x)) {
-            running = false;
+            frame = null;
             return;
         }
 
         drawn = x;
-        window.requestAnimationFrame(frame);
+        frame = window.requestAnimationFrame(tick);
+    }
+
+    /*
+      Назначенный кадр надо снять, а не просто пометить проход законченным:
+      иначе он успевает сработать уже с новым левым концом и старым началом
+      отсчёта, и вместо кривой выходит один отрезок через весь холст.
+    */
+    function stop() {
+        if (frame !== null) window.cancelAnimationFrame(frame);
+        frame = null;
     }
 
     function start() {
-        running = false;
+        stop();
         drawGrid();
         if (points.length === 0) return;
 
@@ -122,12 +132,9 @@ export async function setup({ canvas, controls, token }) {
             return;
         }
 
-        running = true;
         drawn = LOWER;
-        window.requestAnimationFrame((timestamp) => {
-            origin = timestamp;
-            window.requestAnimationFrame(frame);
-        });
+        origin = null;
+        frame = window.requestAnimationFrame(tick);
     }
 
     canvas.addEventListener("click", (event) => {
@@ -144,8 +151,8 @@ export async function setup({ canvas, controls, token }) {
     controls.append(
         button("Запустить", start, { primary: true }),
         button("Очистить", () => {
+            stop();
             points = [];
-            running = false;
             drawGrid();
         }),
         legend([

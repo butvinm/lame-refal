@@ -1,34 +1,38 @@
-# Этот Makefile упрощает работу в IntelliJ IDEA. Нужно установить плагин
-# для Makefile’ов Виктора Кроппа (просто набрать makefile в Marketplace).
-# Тогда цели этого файла будут доступны для запуска через кнопку Run
-# или комбинацию Shift-F10.
-#
-# Цели с именами на -win запускают .bat-файлы, на -posix — Bash-скрипты.
-#
-# Можно пользоваться этим Makefile и обычным образом, запуская make
-# в командной строке. Но удобнее из командной строки запускать сами скрипты
-# непосредственно.
+ifeq ($(origin CC),default)
+CC := clang
+endif
+
+COMPILER := Refal-05-Standalone/bin/refal05c
+RUNTIME := runtime/lamelibc.c runtime/lamewasm.h runtime/stb_sprintf.h $(wildcard runtime/include/*.h)
+SHARED := $(wildcard examples/*.c) $(wildcard examples/*.js)
+
+EXAMPLE_DIRS := $(patsubst %/,%,$(dir $(wildcard examples/*/main.ref)))
+EXAMPLES := $(addsuffix /main.wasm,$(EXAMPLE_DIRS))
 
 
-all:
-	echo Read Makefile for details
+.PHONY: all
+all: $(EXAMPLES)
 
 
-all-win:
-	bootstrap.bat
-
-compiler-makeself-win:
-	cd src && makeself.bat
-
-compiler-makeself-s-win:
-	cd src && makeself.bat stable
+$(COMPILER):
+	R05CCOMP="$${R05CCOMP:-$(CC) -Wall -g}" $(MAKE) -C Refal-05-Standalone bin/refal05c
 
 
-all-posix:
-	./bootstrap.sh
+.SECONDEXPANSION:
+$(EXAMPLES): %/main.wasm: $$(wildcard $$*/*.ref) $(SHARED) $(RUNTIME) $(COMPILER)
+	SHARED_DIR=examples ./tools/build-wasm.sh $*
 
-compiler-makeself-posix:
-	cd src && ./makeself.sh
 
-compiler-makeself-s-posix:
-	cd src && ./makeself.sh stable
+.PHONY: test
+test: $(EXAMPLES)
+	node tests/smoke.mjs
+
+
+.PHONY: serve
+serve: $(EXAMPLES)
+	python3 -m http.server 8000
+
+
+.PHONY: clean
+clean:
+	rm -f $(EXAMPLES) $(foreach dir,$(EXAMPLE_DIRS),$(dir)/*.c)

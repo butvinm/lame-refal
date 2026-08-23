@@ -1,19 +1,52 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>WASM Test</title>
+        <title>Ущербный Рефал</title>
+        <meta
+            name="description"
+            content="Примеры программ на Рефале-05, скомпилированных в WebAssembly и запущенных в браузере."
+        />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="site/site.css" />
     </head>
     <body>
-        <h1>Refal in WASM examples</h1>
-        <ul>
-            <li>
-                <a href="./examples/canvas/lgbtqia2s+">lgbtqia2s+</a>
-            </li>
-            <li>
-                <a href="./examples/canvas/interpolation">interpolation</a>
-            </li>
-        </ul>
+        <div class="page">
+            <h1 class="title">Ущербный Рефал</h1>
+
+            <div class="lead">
+                <p>
+                    Код на C, сгенерированный Рефал-05, компилируется в WebAssembly.
+                </p>
+                <p>
+                    JS-рантайм вызывает Рефал-машину на каждый кадр, подключая к ней внешние
+                    функции рисования на холсте.
+                </p>
+                <p>
+                    Состояние хранится на стороне рантайма и передаётся через аргументы
+                    командной строки <code>&lt;Arg&gt;</code>. Обновлённое состояние программа
+                    при необходимости печатает в stdout.
+                </p>
+                <p>Рефал-программа обрабатывает состояние и отрисовывает один кадр.</p>
+            </div>
+
+            <div id="feed"></div>
+
+            <footer class="footer">
+                <a href="https://github.com/butvinm/lame-refal">github.com/butvinm/lame-refal</a>
+            </footer>
+        </div>
+
+        <script type="module">
+            import { mountFeed } from "./site/feed.js";
+
+            await mountFeed(document.getElementById("feed"));
+        </script>
     </body>
 </html>

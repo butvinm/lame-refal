@@ -1,0 +1,124 @@
+*$FROM Canvas
+$EXTERN SetFillStyle;
+$EXTERN SetStrokeStyle;
+$EXTERN SetLineWidth;
+$EXTERN BeginPath;
+$EXTERN MoveTo;
+$EXTERN LineTo;
+$EXTERN Stroke;
+$EXTERN Fill;
+$EXTERN Arc;
+
+*$FROM LibraryEx
+$EXTERN Map;
+$EXTERN Trim;
+
+*$FROM FPF
+$EXTERN FPF-ToInt;
+
+*$FROM Interpolation
+$EXTERN Linear;
+$EXTERN Lagrange;
+
+/* Аргументы:
+  <Arg 0>   левый конец отрезка по абсциссе
+  <Arg 1>   правый конец
+  <Arg 2>   узлы, по одному "x;y" в строке
+  <Arg 3>   цвет узлов
+  <Arg 4>   цвет многочлена Лагранжа
+  <Arg 5>   цвет ломаной
+
+Кривые рисуются отрезками: с каждым кадром страница передаёт очередной интервал по оси абсцисс, а программа вычисляет ординаты на его концах. Хранить предыдущую точку не требуется: память между запусками всё равно сбрасывается.
+*/
+$ENTRY Go {
+  =
+    <SetLineWidth <CurveWidth>>
+    <Next
+      (<JSFloatToFF <Arg 0>>)
+      (<JSFloatToFF <Arg 1>>)
+      <ParsePoints <Arg 2>>
+    >;
+}
+
+ParsePoints {
+  e.Points = <Map (ParseRow) <Split '\n' <Trim e.Points>>>;
+}
+
+$ENTRY ParseRow {
+  (e.Row) = (<Map JSFloatToFF-Bracketed <Split ';' e.Row>>);
+}
+
+Split {
+  s.Del e.StrB s.Del e.StrE = (e.StrB) <Split s.Del e.StrE>;
+  s.Del e.Str = (e.Str);
+}
+
+$ENTRY JSFloatToFF-Bracketed {
+  (e.Float) = (<JSFloatToFF e.Float>);
+}
+
+JSFloatToFF {
+  e.Int '.' s.F0 s.F1 s.F2 e.Rest = <Numb e.Int s.F0 s.F1 s.F2>;
+  e.Int '.' s.F0 s.F1 = <Numb e.Int s.F0 s.F1 '0'>;
+  e.Int '.' s.F0 = <Numb e.Int s.F0 '0' '0'>;
+  e.Int = <Numb e.Int '0' '0' '0'>;
+}
+
+
+NodeRadius { = 7 }
+CurveWidth { = 3 }
+
+/* Для построения кривых нужны два узла; иначе показываем только узел. */
+Next {
+  (e.X0) (e.X1) t.First t.Second e.Rest =
+    <DrawNodes t.First t.Second e.Rest>
+
+    <SetStrokeStyle <Arg 4>>
+    <DrawSegment
+      ((e.X0) (<Lagrange (e.X0) t.First t.Second e.Rest>))
+      ((e.X1) (<Lagrange (e.X1) t.First t.Second e.Rest>))
+    >
+
+    <SetStrokeStyle <Arg 5>>
+    <DrawSegment
+      ((e.X0) (<Linear (e.X0) t.First t.Second e.Rest>))
+      ((e.X1) (<Linear (e.X1) t.First t.Second e.Rest>))
+    >;
+
+  (e.X0) (e.X1) e.Points = <DrawNodes e.Points>;
+}
+
+DrawNodes {
+  e.Points = <SetFillStyle <Arg 3>> <Map (DrawPoint <NodeRadius>) e.Points>;
+}
+
+
+
+ToCanvasCenterX { e.A = <Add (e.A) 500> }
+ToCanvasCenterY { e.A = <Sub 500 e.A> }
+CanvasScale { e.A = <Mul (e.A) 50> }
+
+$ENTRY DrawPoint {
+  s.R ((e.X) (e.Y)) =
+    <BeginPath>
+    <Arc
+      (<ToCanvasCenterX <FPF-ToInt <CanvasScale e.X>>>)
+      (<ToCanvasCenterY <FPF-ToInt <CanvasScale e.Y>>>)
+      s.R 0 7 0
+    >
+    <Fill>;
+}
+
+DrawSegment {
+  ((e.X0) (e.Y0)) ((e.X1) (e.Y1)) =
+    <BeginPath>
+    <MoveTo
+      (<ToCanvasCenterX <FPF-ToInt <CanvasScale e.X0>>>)
+      (<ToCanvasCenterY <FPF-ToInt <CanvasScale e.Y0>>>)
+    >
+    <LineTo
+      (<ToCanvasCenterX <FPF-ToInt <CanvasScale e.X1>>>)
+      (<ToCanvasCenterY <FPF-ToInt <CanvasScale e.Y1>>>)
+    >
+    <Stroke>;
+}

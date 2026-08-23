@@ -1,3 +1,0 @@
-$EXTERN Foo, Bar, Foo, Bar;
-
-$ENTRY Go { = Foo Bar }

@@ -1,0 +1,122 @@
+*$FROM Canvas
+$EXTERN BeginPath, MoveTo, LineTo, Stroke, SetStrokeStyle, SetLineWidth;
+
+/* L-система: ветвящееся растение.
+
+Аргументы:
+  <Arg 0>   число итераций
+  <Arg 1>   длина шага черепашки
+  <Arg 2>   лента цифр, по одной на итерацию: она решает, каким предложением растёт побег на этом уровне
+  <Arg 3>   цвет ствола
+  <Arg 4>   цвет молодых побегов
+
+Сначала строка переписывается по продукциям, потом черепашка читает готовое слово и превращает его в ветки.
+*/
+$ENTRY Go {
+  = <Draw <Grow <Numb <Arg 0>> (<Arg 2>) 'X'>>;
+}
+
+StepLen { = <Numb <Arg 1>> }
+
+/* Четыре варианта роста побега: исходный, зеркальный и два комбинированных. */
+Sprout {
+  '0' = 'F+[[X]-X]-F[-FX]+X';
+  '1' = 'F-[[X]+X]+F[+FX]-X';
+  '2' = 'F+[[X]-X]-F[+FX]-X';
+  '3' = 'FF-[[X]+X]+F[-FX]+X';
+  s.Other = 'FX';
+}
+
+Rewrite {
+  s.Digit 'X' = <Sprout s.Digit>;
+  s.Digit 'F' = 'FF';
+  s.Digit s.Other = s.Other;
+}
+
+/* На каждой итерации расходуется одна цифра; когда цифры заканчиваются, применяется правило 0. */
+Grow {
+  0 (e.Digits) e.Word = e.Word;
+
+  s.N (s.Digit e.Digits) e.Word =
+    <Grow <Sub (s.N) 1> (e.Digits) <Expand s.Digit e.Word>>;
+
+  s.N () e.Word = <Grow <Sub (s.N) 1> () <Expand '0' e.Word>>;
+}
+
+Expand {
+  s.Digit = ;
+  s.Digit s.Sym e.Rest = <Rewrite s.Digit s.Sym> <Expand s.Digit e.Rest>;
+}
+
+/* Черепашка. Направление задаётся числом от 0 до 14, поворот составляет 24 градуса.
+
+Тригонометрии в Рефале нет, поэтому косинусы и синусы записаны в таблице и умножены на тысячу; нулевое направление смотрит вверх. Рисование начинается в точке (0, 0), а страница размещает результат, сдвигая систему координат холста.
+*/
+Draw {
+  e.Word = <Walk 0 0 (0) (0) () e.Word>;
+}
+
+Walk {
+  s.Dir s.Depth (e.X) (e.Y) (e.Stack) = ;
+
+  s.Dir s.Depth (e.X) (e.Y) (e.Stack) 'F' e.Rest =
+    <Segment
+      s.Dir s.Depth (e.X) (e.Y)
+      (<Add (e.X) <Shift <DeltaX s.Dir>>>)
+      (<Add (e.Y) <Shift <DeltaY s.Dir>>>)
+      (e.Stack) e.Rest
+    >;
+
+  s.Dir s.Depth (e.X) (e.Y) (e.Stack) '+' e.Rest =
+    <Walk <Turn s.Dir 1> s.Depth (e.X) (e.Y) (e.Stack) e.Rest>;
+
+  s.Dir s.Depth (e.X) (e.Y) (e.Stack) '-' e.Rest =
+    <Walk <Turn s.Dir 14> s.Depth (e.X) (e.Y) (e.Stack) e.Rest>;
+
+  /* Развилка: положение и направление ложатся на стек. */
+  s.Dir s.Depth (e.X) (e.Y) (e.Stack) '[' e.Rest =
+    <Walk s.Dir <Add (s.Depth) 1> (e.X) (e.Y)
+      ((s.Dir (e.X) (e.Y)) e.Stack) e.Rest>;
+
+  s.Dir s.Depth (e.X) (e.Y) ((s.Old (e.OldX) (e.OldY)) e.Stack) ']' e.Rest =
+    <Walk s.Old <Sub (s.Depth) 1> (e.OldX) (e.OldY) (e.Stack) e.Rest>;
+
+  s.Dir s.Depth (e.X) (e.Y) (e.Stack) s.Skip e.Rest =
+    <Walk s.Dir s.Depth (e.X) (e.Y) (e.Stack) e.Rest>;
+}
+
+Segment {
+  s.Dir s.Depth (e.X) (e.Y) (e.NextX) (e.NextY) (e.Stack) e.Rest =
+    <SetLineWidth <Thickness s.Depth>>
+    <SetStrokeStyle <Tint s.Depth>>
+    <BeginPath>
+    <MoveTo (e.X) (e.Y)>
+    <LineTo (e.NextX) (e.NextY)>
+    <Stroke>
+    <Walk s.Dir s.Depth (e.NextX) (e.NextY) (e.Stack) e.Rest>;
+}
+
+Shift { e.Delta = <Div (<Mul (<StepLen>) e.Delta>) 1000> }
+
+Turn { s.Dir s.Delta = <Mod (<Add (s.Dir) s.Delta>) 15> }
+
+/* Чем дальше от ствола, тем тоньше ветка и тем она моложе. */
+Thickness {
+  0 = 13; 1 = 10; 2 = 7; 3 = 5; 4 = 4; 5 = 3; s.Deep = 2;
+}
+
+Tint {
+  0 = <Arg 3>; 1 = <Arg 3>; 2 = <Arg 3>; s.Deep = <Arg 4>;
+}
+
+DeltaX {
+   0 = 0;  1 = 407;  2 = 743;  3 = 951;  4 = 995;
+   5 = 866;  6 = 588;  7 = 208;  8 = '-' 208;  9 = '-' 588;
+  10 = '-' 866;  11 = '-' 995;  12 = '-' 951;  13 = '-' 743;  14 = '-' 407;
+}
+
+DeltaY {
+   0 = '-' 1000;  1 = '-' 914;  2 = '-' 669;  3 = '-' 309;  4 = 105;
+   5 = 500;  6 = 809;  7 = 978;  8 = 978;  9 = 809;
+  10 = 500;  11 = 105;  12 = '-' 309;  13 = '-' 669;  14 = '-' 914;
+}

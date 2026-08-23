@@ -1,0 +1,327 @@
+:root {
+    color-scheme: light;
+
+    --paper: #f7f3e7;
+    --card: #efe9d8;
+    --ink: #1f1c17;
+    --ink-soft: #5c5648;
+    --ink-faint: #6f6857;
+    --rule: #ddd5bf;
+    --accent: #1a5fb4;
+
+    /* Контрастные цвета рядов графика на бумажном фоне. */
+    --series-1: #2a78d6;
+    --series-2: #d95926;
+
+    /* Растение: ствол и молодые побеги. */
+    --bark: #6b4a2a;
+    --leaf: #5c7a2f;
+
+    --sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    /* Шум feTurbulence окрашен охрой и встроен как data URI.
+
+    Чёрный шум делал фон серым, а тёплый сохраняет оттенок бумаги.
+    */
+    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.36 0 0 0 0 0.27 0 0 0 0 0.13 0.05 0.05 0.05 0 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23p)'/%3E%3C/svg%3E");
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0 1.25rem 5rem;
+    background-color: var(--paper);
+    background-image: var(--grain);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Кнопки, поля и заголовки исходников обозначают фокус изменением цвета. */
+:focus-visible {
+    outline: none;
+}
+
+button:focus-visible,
+.line:focus-visible {
+    border-color: var(--accent);
+}
+
+.source > summary:focus-visible {
+    color: var(--accent);
+}
+
+/* Поскольку у ссылки нет рамки, фокус обозначается тонкой обводкой вокруг неё. */
+a:focus-visible {
+    outline: 1px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.page {
+    max-width: 46rem;
+    margin: 0 auto;
+}
+
+/* Угловые скобки в заголовках изображают вызов функции Рефала; страница говорит на том же языке, что и примеры. */
+
+.title,
+.example > h2 {
+    font-family: var(--mono);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin: 0;
+}
+
+.title {
+    font-size: clamp(2rem, 6vw, 3.25rem);
+    padding: 4rem 0 1rem;
+}
+
+.example > h2 {
+    font-size: 1.5rem;
+    padding-bottom: 1.25rem;
+}
+
+.title::before,
+.title::after,
+.example > h2::before,
+.example > h2::after {
+    color: var(--accent);
+    font-weight: 400;
+}
+
+.title::before,
+.example > h2::before {
+    content: "<";
+}
+
+.title::after,
+.example > h2::after {
+    content: ">";
+}
+
+.lead {
+    max-width: 38rem;
+    padding-bottom: 1rem;
+    color: var(--ink-soft);
+    font-size: 0.9375rem;
+    line-height: 1.55;
+}
+
+.lead p {
+    margin: 0 0 0.6rem;
+}
+
+.lead code {
+    font-family: var(--mono);
+    font-size: 0.875em;
+    padding: 0.05em 0.3em;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    background: var(--card);
+    color: var(--ink);
+}
+
+.example {
+    padding: 3rem 0;
+    border-top: 1px solid var(--rule);
+}
+
+.example__demo {
+    display: grid;
+    gap: 1rem;
+}
+
+/* Прозрачный холст сохраняет бумажный фон под рисунком. */
+
+.example canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+}
+
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.controls:empty {
+    display: none;
+}
+
+button {
+    font-family: var(--mono);
+    font-size: 0.875rem;
+    padding: 0.6rem 0.9rem;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    background: none;
+    color: var(--ink);
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+button::before {
+    content: "<";
+    color: var(--accent);
+}
+
+button::after {
+    content: ">";
+    color: var(--accent);
+}
+
+button.primary {
+    font-weight: 600;
+}
+
+button:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.line {
+    flex: 1;
+    min-width: 8rem;
+    max-width: 20rem;
+    font-family: var(--mono);
+    font-size: 0.875rem;
+    padding: 0.6rem 0.9rem;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    background: none;
+    color: var(--ink);
+}
+
+.line:focus {
+    border-color: var(--accent);
+}
+
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.9rem;
+    margin: 0 0 0 auto;
+    padding: 0;
+    list-style: none;
+    font-size: 0.8125rem;
+}
+
+.legend li {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--ink-soft);
+}
+
+.legend .swatch {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 50%;
+    flex: none;
+}
+
+.source {
+    margin-top: 1.25rem;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+/* display: block скрывает стандартный маркер в браузерах, игнорирующих list-style. */
+.source > summary {
+    display: block;
+    cursor: pointer;
+    padding: 0.6rem 0.9rem;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    list-style: none;
+}
+
+.source > summary::-webkit-details-marker,
+.source > summary::marker {
+    display: none;
+    content: "";
+}
+
+.source > summary:hover {
+    color: var(--ink-soft);
+}
+
+.source > summary::before {
+    content: "+ ";
+    color: var(--accent);
+}
+
+.source[open] > summary::before {
+    content: "- ";
+}
+
+.source > pre {
+    margin: 0;
+    padding: 1rem 1.15rem;
+    border-top: 1px solid var(--rule);
+    background: var(--card);
+    font-family: var(--mono);
+    font-size: 0.8125rem;
+    line-height: 1.55;
+    max-height: 36rem;
+    overflow: auto;
+    tab-size: 2;
+}
+
+.tok-comment {
+    color: var(--ink-faint);
+}
+
+.tok-string {
+    color: var(--series-2);
+}
+
+.tok-call {
+    color: var(--accent);
+}
+
+.tok-directive {
+    font-weight: 600;
+}
+
+.footer {
+    padding-top: 2rem;
+    border-top: 1px solid var(--rule);
+    font-family: var(--mono);
+    font-size: 0.8125rem;
+}
+
+.footer a {
+    color: var(--accent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+}
+
+.footer a:hover {
+    text-decoration-thickness: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+        animation: none !important;
+    }
+}

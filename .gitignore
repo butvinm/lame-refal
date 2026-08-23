@@ -1,4 +1,6 @@
-bin
-src/cfiles
-c-plus-plus.conf.bat
-c-plus-plus.conf.sh
+node_modules
+
+# Артефакты сборки примеров: генерируются из .ref компилятором Рефала-05
+examples/**/*.c
+!examples/Canvas.c
+examples/**/*.wasm

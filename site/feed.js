@@ -56,20 +56,26 @@ function buildSection(example) {
     demo.append(frame, controls);
 
     const code = document.createElement("code");
-    const source = document.createElement("pre");
+    const listing = document.createElement("pre");
+    listing.append(code);
+
+    const summary = document.createElement("summary");
+    summary.textContent = sourceNames(example).join(", ");
+
+    const source = document.createElement("details");
     source.className = "source";
-    source.append(code);
+    source.append(summary, listing);
 
-    const body = document.createElement("div");
-    body.className = "example__body";
-    body.append(demo, source);
-
-    section.append(heading, body);
+    section.append(heading, demo, source);
     return { section, canvas, controls, code };
 }
 
+function sourceNames(example) {
+    return example.sources ?? ["main.ref"];
+}
+
 async function loadSource(example, code) {
-    const names = example.sources ?? ["main.ref"];
+    const names = sourceNames(example);
     const texts = await Promise.all(
         names.map(async (name) => {
             const url = new URL(`../examples/${example.slug}/${name}`, import.meta.url);

@@ -61,7 +61,7 @@ body {
 }
 
 .page {
-    max-width: 84rem;
+    max-width: 60rem;
     margin: 0 auto;
 }
 
@@ -112,30 +112,15 @@ body {
     border-top: 1px solid var(--rule);
 }
 
-.example__body {
-    display: grid;
-    gap: 1.5rem;
-    align-items: start;
-}
-
 .example__demo {
     display: grid;
     gap: 1.25rem;
+    align-items: start;
 }
 
-@media (min-width: 56rem) {
-    .example__body {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    }
-}
-
-@media (min-width: 78rem) {
-    .example__body {
-        grid-template-columns: minmax(0, 1fr) 14rem minmax(0, 1fr);
-    }
-
+@media (min-width: 52rem) {
     .example__demo {
-        display: contents;
+        grid-template-columns: minmax(0, 1fr) 15rem;
     }
 }
 
@@ -269,11 +254,41 @@ textarea {
 /* Текст программы */
 
 .source {
-    margin: 0;
-    padding: 1rem 1.15rem;
-    background: var(--card);
+    margin-top: 1.25rem;
     border: 1px solid var(--rule);
     border-radius: 3px;
+    background: var(--surface);
+    overflow: hidden;
+}
+
+.source > summary {
+    cursor: pointer;
+    padding: 0.55rem 0.9rem;
+    font-family: var(--mono);
+    font-size: 0.8125rem;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+    list-style: none;
+}
+
+.source > summary::-webkit-details-marker {
+    display: none;
+}
+
+.source > summary::before {
+    content: "+ ";
+    color: var(--accent);
+}
+
+.source[open] > summary::before {
+    content: "- ";
+}
+
+.source > pre {
+    margin: 0;
+    padding: 1rem 1.15rem;
+    border-top: 1px solid var(--rule);
+    background: var(--card);
     font-family: var(--mono);
     font-size: 0.8125rem;
     line-height: 1.55;
